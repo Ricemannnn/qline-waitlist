@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Calendar, BarChart3, ChevronRight } from 'lucide-react';
+import { Users, Calendar, BarChart3, ChevronRight, Store, Zap, CheckCircle2 } from 'lucide-react';
+import heroImage from '../assets/hero.png';
 
 const LandingPage = () => {
   return (
@@ -18,7 +19,7 @@ const LandingPage = () => {
           <a href="#benefits" className="text-sm font-medium hover:text-[#F36D21] transition-colors">Benefits</a>
           <a href="#pricing" className="text-sm font-medium hover:text-[#F36D21] transition-colors">Pricing</a>
           <a href="/api/auth/clover" className="bg-[#F36D21] text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-[#D95D1C] transition-all flex items-center gap-2">
-            <img src="https://www.clover.com/favicon.ico" alt="Clover" className="w-4 h-4" />
+            <Store className="w-4 h-4" />
             Login with Clover
           </a>
         </nav>
@@ -33,14 +34,19 @@ const LandingPage = () => {
         <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
           Provide a seamless experience for your guests and optimize your front-of-house operations with Qline's intelligent management system.
         </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
           <a href="/api/auth/clover" className="w-full sm:w-auto bg-[#F36D21] text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-[#F36D21]/20 transition-all flex items-center justify-center gap-3">
-            <img src="https://www.clover.com/favicon.ico" alt="Clover" className="w-6 h-6" />
+            <Zap className="w-6 h-6 fill-current" />
             Connect with Clover <ChevronRight className="w-5 h-5" />
           </a>
-          <Link to="/join" className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-lg border-2 border-gray-200 hover:bg-gray-50 transition-all">
+          <Link to="/join" className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-lg border-2 border-gray-200 hover:bg-gray-50 transition-all text-center">
             Join Waitlist (Guest)
           </Link>
+        </div>
+
+        <div className="relative mx-auto max-w-5xl rounded-[32px] overflow-hidden shadow-2xl border-8 border-white">
+          <img src={heroImage} alt="Qline Dashboard Preview" className="w-full h-auto" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#FFFDF9]/20 to-transparent pointer-events-none"></div>
         </div>
       </section>
 
