@@ -11,5 +11,6 @@ export const joinWaitlist = (restaurantId, data) => api.post(`/waitlist/${restau
 export const updateWaitlistStatus = (id, status) => api.patch(`/waitlist/status/${id}`, { status });
 export const notifyGuest = (restaurantId, id) => api.post(`/waitlist/${restaurantId}/notify/${id}`);
 export const getReservations = (restaurantId) => api.get(`/reservations/${restaurantId}`);
+export const getCloverStatus = (merchantId) => api.get(`/auth/clover/status/${merchantId}`);
 
 export default api;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Users, Calendar, Settings, Plus, Bell, Check, X, Search, QrCode, Send } from 'lucide-react';
-import { getWaitlist, updateWaitlistStatus, notifyGuest } from '../api';
+import { Users, Calendar, Settings, Plus, Bell, Check, X, Search, QrCode, Send, Zap } from 'lucide-react';
+import { getWaitlist, updateWaitlistStatus, notifyGuest, getReservations, getCloverStatus } from '../api';
 
 const HostDashboard = () => {
   const [searchParams] = useSearchParams();
@@ -9,22 +9,52 @@ const HostDashboard = () => {
   const [waitlist, setWaitlist] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const restaurantId = searchParams.get('merchantId') || 'demo-1';
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [merchantName, setMerchantName] = useState('The Golden Fork');
+  
+  const merchantId = searchParams.get('merchantId');
 
-  const fetchWaitlist = async () => {
+  const checkAuth = async () => {
+    if (!merchantId) {
+      // For demo purposes on local/replit, we allow demo-1
+      if (window.location.hostname === 'localhost' || window.location.hostname.includes('replit')) {
+        setIsAuthenticated(true);
+        setLoading(false);
+        return;
+      }
+      setIsAuthenticated(false);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await getWaitlist(restaurantId);
-      setWaitlist(response.data);
+      const response = await getCloverStatus(merchantId);
+      if (response.data.connected) {
+        setIsAuthenticated(true);
+        setMerchantName(response.data.merchantName);
+      } else {
+        setIsAuthenticated(false);
+      }
     } catch (err) {
-      console.error('Failed to fetch waitlist:', err);
+      console.error('Auth check failed:', err);
+      setIsAuthenticated(false);
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchWaitlist = async () => {
+    try {
+      const response = await getWaitlist(merchantId || 'demo-1');
+      setWaitlist(response.data);
+    } catch (err) {
+      console.error('Failed to fetch waitlist:', err);
+    }
+  };
+
   const fetchReservations = async () => {
     try {
-      const response = await getReservations(restaurantId);
+      const response = await getReservations(merchantId || 'demo-1');
       setReservations(response.data);
     } catch (err) {
       console.error('Failed to fetch reservations:', err);
@@ -32,14 +62,20 @@ const HostDashboard = () => {
   };
 
   useEffect(() => {
-    fetchWaitlist();
-    fetchReservations();
-    const interval = setInterval(() => {
+    checkAuth();
+  }, [merchantId]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
       fetchWaitlist();
       fetchReservations();
-    }, 5000); // Poll every 5 seconds
-    return () => clearInterval(interval);
-  }, []);
+      const interval = setInterval(() => {
+        fetchWaitlist();
+        fetchReservations();
+      }, 5000); // Poll every 5 seconds
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated]);
 
   const handleStatusChange = async (id, status) => {
     try {
@@ -222,6 +258,32 @@ const HostDashboard = () => {
     </div>
   );
 
+  if (!isAuthenticated && !loading) {
+    return (
+      <div className="min-h-screen bg-[#FFFDF9] flex items-center justify-center p-6">
+        <div className="bg-white p-12 rounded-[40px] shadow-xl text-center max-w-lg border border-gray-100">
+          <div className="w-20 h-20 bg-orange-50 rounded-3xl flex items-center justify-center mx-auto mb-8">
+            <Users className="text-[#F36D21] w-10 h-10" />
+          </div>
+          <h1 className="text-3xl font-bold mb-4 text-gray-900">Access Restricted</h1>
+          <p className="text-gray-500 text-lg mb-10 leading-relaxed">
+            Please log in with your Clover merchant account to manage your restaurant's waitlist and reservations.
+          </p>
+          <a 
+            href="/api/auth/clover" 
+            className="inline-flex items-center gap-3 bg-[#F36D21] text-white px-10 py-4 rounded-2xl font-bold text-lg hover:bg-[#D95D1C] transition-all shadow-lg shadow-[#F36D21]/20"
+          >
+            <Zap className="w-6 h-6 fill-current" />
+            Login with Clover
+          </a>
+          <div className="mt-8">
+            <Link to="/" className="text-[#F36D21] font-semibold hover:underline">Back to Home</Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#FFFDF9] flex flex-col">
       <nav className="h-16 px-6 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-10">
@@ -305,7 +367,7 @@ const HostDashboard = () => {
           <div className="bg-[#F36D21] p-6 rounded-3xl text-white shadow-xl shadow-[#F36D21]/20">
             <h3 className="font-bold mb-2">Clover Merchant</h3>
             <p className="text-sm text-white/80 mb-6 leading-relaxed">
-              Your restaurant "The Golden Fork" is successfully synced with Clover merchant account.
+              Your restaurant "{merchantName}" is successfully synced with Clover merchant account.
             </p>
             <button className="w-full bg-white text-[#F36D21] py-3 rounded-xl font-bold text-sm hover:bg-white/90 transition-all">
               Manage Sync
