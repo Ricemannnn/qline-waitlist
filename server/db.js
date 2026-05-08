@@ -39,6 +39,14 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (restaurant_id) REFERENCES restaurants (id)
   );
+
+  CREATE TABLE IF NOT EXISTS settings (
+    restaurant_id TEXT PRIMARY KEY,
+    wait_time_per_party INTEGER DEFAULT 10,
+    sms_template TEXT DEFAULT 'Hi {guest_name}, your table at {restaurant_name} is ready!',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants (id)
+  );
 `);
 
 export default db;

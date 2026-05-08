@@ -1,16 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Users, Calendar, Settings, Plus, Bell, Check, X, Search, QrCode, Send, Zap } from 'lucide-react';
-import { getWaitlist, updateWaitlistStatus, notifyGuest, getReservations, getCloverStatus } from '../api';
+import { useSearchParams, Link } from 'react-router-dom';
+import { Users, Calendar, Settings, Plus, Bell, Check, X, Search, QrCode, Send, Zap, BarChart3 } from 'lucide-react';
+import { getWaitlist, updateWaitlistStatus, notifyGuest, getReservations, getCloverStatus, getSettings, updateSettings, addReservation, updateReservationStatus } from '../api';
 
 const HostDashboard = () => {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('waitlist');
-  const [waitlist, setWaitlist] = useState([]);
+  const [waitlist, setWaitlist] = useState({ entries: [], summary: { total_waiting: 0, next_estimated_wait: 0 } });
   const [reservations, setReservations] = useState([]);
+  const [settings, setSettings] = useState({ wait_time_per_party: 10, sms_template: '' });
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [merchantName, setMerchantName] = useState('The Golden Fork');
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+  
+  // New reservation form state
+  const [showResModal, setShowResModal] = useState(false);
+  const [newRes, setNewRes] = useState({ guest_name: '', party_size: 2, phone_number: '', reservation_time: '' });
   
   const merchantId = searchParams.get('merchantId');
 
@@ -61,6 +67,28 @@ const HostDashboard = () => {
     }
   };
 
+  const fetchSettings = async () => {
+    try {
+      const response = await getSettings(merchantId || 'demo-1');
+      setSettings(response.data);
+    } catch (err) {
+      console.error('Failed to fetch settings:', err);
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    setIsSavingSettings(true);
+    try {
+      await updateSettings(merchantId || 'demo-1', settings);
+      alert('Settings saved successfully!');
+    } catch (err) {
+      console.error('Failed to save settings:', err);
+      alert('Failed to save settings.');
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
+
   useEffect(() => {
     checkAuth();
   }, [merchantId]);
@@ -69,6 +97,7 @@ const HostDashboard = () => {
     if (isAuthenticated) {
       fetchWaitlist();
       fetchReservations();
+      fetchSettings();
       const interval = setInterval(() => {
         fetchWaitlist();
         fetchReservations();
@@ -83,6 +112,38 @@ const HostDashboard = () => {
       fetchWaitlist();
     } catch (err) {
       console.error('Failed to update status:', err);
+    }
+  };
+
+  const handleResStatusChange = async (id, status) => {
+    try {
+      await updateReservationStatus(id, status);
+      fetchReservations();
+    } catch (err) {
+      console.error('Failed to update reservation status:', err);
+    }
+  };
+
+  const handleAddReservation = async (e) => {
+    e.preventDefault();
+    try {
+      await addReservation(merchantId || 'demo-1', newRes);
+      setShowResModal(false);
+      setNewRes({ guest_name: '', party_size: 2, phone_number: '', reservation_time: '' });
+      fetchReservations();
+    } catch (err) {
+      console.error('Failed to add reservation:', err);
+      alert('Failed to add reservation');
+    }
+  };
+
+  const handleNotify = async (id) => {
+    try {
+      await notifyGuest(merchantId || 'demo-1', id);
+      alert('Notification sent!');
+      fetchWaitlist();
+    } catch (err) {
+      console.error('Failed to notify guest:', err);
     }
   };
 
@@ -102,15 +163,15 @@ const HostDashboard = () => {
       <div className="grid grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
           <p className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Total Waiting</p>
-          <p className="text-3xl font-bold">{waitlist.length}</p>
+          <p className="text-3xl font-bold">{waitlist.summary?.total_waiting || 0}</p>
         </div>
         <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
-          <p className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Avg. Wait</p>
-          <p className="text-3xl font-bold">15<span className="text-sm font-medium text-gray-400 ml-1">min</span></p>
+          <p className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Estimated Wait</p>
+          <p className="text-3xl font-bold">{waitlist.summary?.next_estimated_wait || 0}<span className="text-sm font-medium text-gray-400 ml-1">min</span></p>
         </div>
         <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
-          <p className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Total Parties</p>
-          <p className="text-3xl font-bold">12</p>
+          <p className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Time Per Party</p>
+          <p className="text-3xl font-bold">{settings.wait_time_per_party}<span className="text-sm font-medium text-gray-400 ml-1">min</span></p>
         </div>
         <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
           <p className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Tables Open</p>
@@ -137,7 +198,7 @@ const HostDashboard = () => {
         <div className="flex-1 overflow-y-auto p-4">
           {loading ? (
             <div className="flex items-center justify-center h-full text-gray-400">Loading...</div>
-          ) : waitlist.length === 0 ? (
+          ) : !waitlist.entries || waitlist.entries.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-400 text-center p-8">
               <Users className="w-12 h-12 mb-4 opacity-20" />
               <p className="font-medium">The queue is currently empty</p>
@@ -145,14 +206,14 @@ const HostDashboard = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {waitlist.map((guest, index) => (
+              {waitlist.entries.map((guest, index) => (
                 <div key={guest.id} className="flex items-center justify-between p-4 bg-[#FFFDF9] rounded-2xl border border-gray-50 hover:border-[#F36D21]/20 transition-all">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 bg-white border border-gray-100 rounded-xl flex items-center justify-center font-bold text-gray-400">
                       {index + 1}
                     </div>
                     <div>
-                      <p className="font-bold">{guest.guest_name}</p>
+                      <p className="font-bold">{guest.guest_name} <span className="text-xs font-normal text-gray-400 ml-2">Est. {guest.estimated_wait} min</span></p>
                       <div className="flex items-center gap-3 text-xs text-gray-500 font-medium mt-0.5">
                         <span className="flex items-center gap-1"><Users className="w-3 h-3" /> Party of {guest.party_size}</span>
                         <span>• Joined {new Date(guest.joined_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
@@ -196,27 +257,57 @@ const HostDashboard = () => {
           <h1 className="text-2xl font-bold">Reservations</h1>
           <p className="text-gray-500 text-sm font-medium">Manage upcoming bookings</p>
         </div>
-        <button className="bg-[#F36D21] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-[#D95D1C] transition-all shadow-lg shadow-[#F36D21]/20">
+        <button 
+          onClick={() => setShowResModal(true)}
+          className="bg-[#F36D21] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-[#D95D1C] transition-all shadow-lg shadow-[#F36D21]/20"
+        >
           <Plus className="w-5 h-5" /> New Reservation
         </button>
       </div>
 
       <div className="flex-1 bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col overflow-hidden">
-        <div className="flex-1 overflow-y-auto p-8 text-center text-gray-400">
-          <Calendar className="w-12 h-12 mb-4 mx-auto opacity-20" />
-          <p className="font-medium">Reservations feature coming soon</p>
-          <p className="text-sm">You can view your existing reservations from Clover here.</p>
-          
-          {reservations.length > 0 && (
-            <div className="mt-8 text-left">
+        <div className="flex-1 overflow-y-auto p-4">
+          {reservations.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-gray-400 text-center p-8">
+              <Calendar className="w-12 h-12 mb-4 opacity-20" />
+              <p className="font-medium">No reservations found</p>
+              <p className="text-sm">Click 'New Reservation' to add one manually.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
               {reservations.map(res => (
-                <div key={res.id} className="p-4 border-b border-gray-50 flex justify-between items-center">
-                  <div>
-                    <p className="font-bold text-gray-800">{res.guest_name}</p>
-                    <p className="text-xs text-gray-500">{new Date(res.reservation_time).toLocaleString()}</p>
+                <div key={res.id} className="flex items-center justify-between p-4 bg-[#FFFDF9] rounded-2xl border border-gray-50 hover:border-[#F36D21]/20 transition-all">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white border border-gray-100 rounded-xl flex flex-col items-center justify-center font-bold text-[#F36D21] text-xs">
+                      <span>{new Date(res.reservation_time).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
+                    </div>
+                    <div>
+                      <p className="font-bold">{res.guest_name}</p>
+                      <div className="flex items-center gap-3 text-xs text-gray-500 font-medium mt-0.5">
+                        <span className="flex items-center gap-1"><Users className="w-3 h-3" /> Party of {res.party_size}</span>
+                        <span>• {new Date(res.reservation_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wider ${
+                          res.status === 'confirmed' ? 'bg-green-100 text-green-600' : 
+                          res.status === 'seated' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                        }`}>{res.status}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-sm font-semibold text-[#F36D21]">
-                    Party of {res.party_size}
+                  <div className="flex items-center gap-2">
+                    {res.status === 'confirmed' && (
+                      <button 
+                        onClick={() => handleResStatusChange(res.id, 'seated')}
+                        className="p-2.5 text-green-600 hover:bg-green-50 rounded-xl transition-all" title="Seat Guest"
+                      >
+                        <Check className="w-5 h-5" />
+                      </button>
+                    )}
+                    <button 
+                      onClick={() => handleResStatusChange(res.id, 'cancelled')}
+                      className="p-2.5 text-red-600 hover:bg-red-50 rounded-xl transition-all" title="Cancel"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -224,6 +315,66 @@ const HostDashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Reservation Modal */}
+      {showResModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
+          <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="text-xl font-bold">New Reservation</h2>
+              <button onClick={() => setShowResModal(false)} className="p-2 hover:bg-gray-100 rounded-full">
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+            <form onSubmit={handleAddReservation} className="p-8 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold mb-1">Guest Name</label>
+                <input 
+                  required
+                  type="text" 
+                  value={newRes.guest_name}
+                  onChange={(e) => setNewRes({...newRes, guest_name: e.target.value})}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#F36D21]" 
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold mb-1">Party Size</label>
+                  <input 
+                    required
+                    type="number" 
+                    value={newRes.party_size}
+                    onChange={(e) => setNewRes({...newRes, party_size: parseInt(e.target.value)})}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#F36D21]" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-1">Phone</label>
+                  <input 
+                    type="tel" 
+                    value={newRes.phone_number}
+                    onChange={(e) => setNewRes({...newRes, phone_number: e.target.value})}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#F36D21]" 
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Date & Time</label>
+                <input 
+                  required
+                  type="datetime-local" 
+                  value={newRes.reservation_time}
+                  onChange={(e) => setNewRes({...newRes, reservation_time: e.target.value})}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#F36D21]" 
+                />
+              </div>
+              <button type="submit" className="w-full bg-[#F36D21] text-white py-3 rounded-xl font-bold mt-4 hover:bg-[#D95D1C] transition-all">
+                Create Reservation
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -240,19 +391,70 @@ const HostDashboard = () => {
         <div className="max-w-md space-y-6">
           <div>
             <label className="block text-sm font-semibold mb-2">Restaurant Name</label>
-            <input type="text" defaultValue="The Golden Fork" className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-[#F36D21]" />
+            <input 
+              type="text" 
+              value={merchantName} 
+              readOnly
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 outline-none cursor-not-allowed" 
+            />
           </div>
           <div>
-            <label className="block text-sm font-semibold mb-2">Estimated Wait Time (mins)</label>
-            <input type="number" defaultValue="15" className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-[#F36D21]" />
+            <label className="block text-sm font-semibold mb-2">Estimated Wait Time Per Party (mins)</label>
+            <input 
+              type="number" 
+              value={settings.wait_time_per_party} 
+              onChange={(e) => setSettings({ ...settings, wait_time_per_party: parseInt(e.target.value) || 0 })}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-[#F36D21]" 
+            />
           </div>
           <div>
             <label className="block text-sm font-semibold mb-2">SMS Message Template</label>
-            <textarea className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-[#F36D21] h-32">Hello! Your table at The Golden Fork is now ready. Please head to the host stand. See you soon!</textarea>
+            <textarea 
+              value={settings.sms_template}
+              onChange={(e) => setSettings({ ...settings, sms_template: e.target.value })}
+              placeholder="Hi {guest_name}, your table at {restaurant_name} is ready!"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-[#F36D21] h-32"
+            ></textarea>
+            <p className="text-xs text-gray-400 mt-2">Available placeholders: <code>{'{guest_name}'}</code>, <code>{'{restaurant_name}'}</code></p>
           </div>
-          <button className="bg-[#F36D21] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#D95D1C] transition-all shadow-lg shadow-[#F36D21]/20">
-            Save Settings
+          <button 
+            onClick={handleSaveSettings}
+            disabled={isSavingSettings}
+            className="bg-[#F36D21] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#D95D1C] transition-all shadow-lg shadow-[#F36D21]/20 disabled:opacity-50"
+          >
+            {isSavingSettings ? 'Saving...' : 'Save Settings'}
           </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderReports = () => (
+    <div className="flex-1 flex flex-col gap-6 overflow-hidden">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Reports</h1>
+          <p className="text-gray-500 text-sm font-medium">Analytics and performance insights</p>
+        </div>
+      </div>
+
+      <div className="flex-1 bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center justify-center p-8 text-center">
+        <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-6">
+          <BarChart3 className="text-blue-500 w-10 h-10" />
+        </div>
+        <h2 className="text-xl font-bold mb-2">Analytics Dashboard</h2>
+        <p className="text-gray-500 max-w-md mx-auto">
+          Detailed reports on wait times, guest volume, and seating efficiency will appear here once you have more data.
+        </p>
+        <div className="mt-8 grid grid-cols-2 gap-4 w-full max-w-lg">
+          <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100">
+            <p className="text-xs font-bold text-gray-400 uppercase mb-1">Peak Hours</p>
+            <p className="text-lg font-bold">6:00 PM - 8:30 PM</p>
+          </div>
+          <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100">
+            <p className="text-xs font-bold text-gray-400 uppercase mb-1">Avg Seating Time</p>
+            <p className="text-lg font-bold">42 mins</p>
+          </div>
         </div>
       </div>
     </div>
@@ -313,6 +515,12 @@ const HostDashboard = () => {
           >
             <Settings className="w-4 h-4" /> Settings
           </button>
+          <button 
+            onClick={() => setActiveTab('reports')}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all ${activeTab === 'reports' ? 'bg-[#F36D21]/10 text-[#F36D21]' : 'text-gray-500 hover:bg-gray-100'}`}
+          >
+            <BarChart3 className="w-4 h-4" /> Reports
+          </button>
         </div>
 
         <div className="flex items-center gap-4">
@@ -329,6 +537,7 @@ const HostDashboard = () => {
         {activeTab === 'waitlist' && renderWaitlist()}
         {activeTab === 'reservations' && renderReservations()}
         {activeTab === 'settings' && renderSettings()}
+        {activeTab === 'reports' && renderReports()}
 
         {/* Right Column: Sidebar */}
         <div className="w-80 flex flex-col gap-6">

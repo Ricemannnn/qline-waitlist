@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Users, Phone, MessageSquare, CheckCircle2 } from 'lucide-react';
 import { joinWaitlist } from '../api';
 
 const JoinPage = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     guest_name: '',
     party_size: 2,
@@ -11,9 +12,8 @@ const JoinPage = () => {
     special_requests: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
-  const restaurantId = 'demo-1'; // Hardcoded for now, should come from URL or config
+  const restaurantId = 'demo-1'; 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,8 +21,9 @@ const JoinPage = () => {
     setError('');
 
     try {
-      await joinWaitlist(restaurantId, formData);
-      setIsSuccess(true);
+      const response = await joinWaitlist(restaurantId, formData);
+      const guestId = response.data.id;
+      navigate(`/status/${guestId}`);
     } catch (err) {
       setError('Failed to join the waitlist. Please try again.');
       console.error(err);
@@ -30,28 +31,6 @@ const JoinPage = () => {
       setIsSubmitting(false);
     }
   };
-
-  if (isSuccess) {
-    return (
-      <div className="min-h-screen bg-[#FFFDF9] flex items-center justify-center p-6">
-        <div className="bg-white p-8 rounded-3xl shadow-xl shadow-gray-200/50 max-w-md w-full text-center">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="text-green-600 w-10 h-10" />
-          </div>
-          <h2 className="text-2xl font-bold mb-2">You're on the list!</h2>
-          <p className="text-gray-600 mb-8">
-            Thanks, {formData.guest_name}. We've received your request for a party of {formData.party_size}. We'll notify you when your table is ready.
-          </p>
-          <button 
-            onClick={() => setIsSuccess(false)}
-            className="w-full bg-[#F36D21] text-white py-4 rounded-xl font-bold hover:bg-[#D95D1C] transition-all"
-          >
-            Done
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#FFFDF9] py-12 px-6">
