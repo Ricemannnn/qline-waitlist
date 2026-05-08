@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Calendar, BarChart3, ChevronRight, Store, Zap, CheckCircle2 } from 'lucide-react';
+import { Users, Calendar, BarChart3, ChevronRight, Store, Zap, CheckCircle2, MessageSquare, Clock, Smartphone, ShieldCheck, HelpCircle } from 'lucide-react';
 import heroImage from '../assets/hero.png';
 
 const LandingPage = () => {
   return (
-    <div className="min-h-screen bg-[#FFFDF9] text-[#1A1A1A] font-sans">
+    <div className="min-h-screen bg-[#FFFDF9] text-[#1A1A1A] font-sans scroll-smooth">
       {/* Header */}
       <header className="px-6 py-4 flex items-center justify-between border-b border-gray-100 sticky top-0 bg-[#FFFDF9]/80 backdrop-blur-md z-50">
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -15,131 +15,291 @@ const LandingPage = () => {
           <span className="text-xl font-bold tracking-tight">Qline</span>
         </Link>
         <nav className="hidden md:flex items-center gap-8">
+          <a href="#how-it-works" className="text-sm font-medium hover:text-[#F36D21] transition-colors">How it Works</a>
           <a href="#features" className="text-sm font-medium hover:text-[#F36D21] transition-colors">Features</a>
-          <a href="#benefits" className="text-sm font-medium hover:text-[#F36D21] transition-colors">Benefits</a>
           <a href="#pricing" className="text-sm font-medium hover:text-[#F36D21] transition-colors">Pricing</a>
-          <a href="/api/auth/clover" className="bg-[#F36D21] text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-[#D95D1C] transition-all flex items-center gap-2">
+          <a href="/api/auth/clover" className="bg-[#F36D21] text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-[#D95D1C] transition-all flex items-center gap-2 shadow-sm">
             <Store className="w-4 h-4" />
             Login with Clover
           </a>
         </nav>
       </header>
 
-      {/* Hero Section */}
-      <section className="px-6 py-20 max-w-6xl mx-auto text-center">
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-tight">
-          Streamline Your Restaurant's <br />
-          <span className="text-[#F36D21]">Waitlist & Reservations</span>
-        </h1>
-        <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-          Provide a seamless experience for your guests and optimize your front-of-house operations with Qline's intelligent management system.
-        </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-          <a href="/api/auth/clover" className="w-full sm:w-auto bg-[#F36D21] text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-[#F36D21]/20 transition-all flex items-center justify-center gap-3">
-            <Zap className="w-6 h-6 fill-current" />
-            Connect with Clover <ChevronRight className="w-5 h-5" />
-          </a>
-          <Link to="/join" className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-lg border-2 border-gray-200 hover:bg-gray-50 transition-all text-center">
-            Join Waitlist (Guest)
-          </Link>
-        </div>
+      {/* HERO SECTION */}
+      <section className="py-20 md:py-32 px-6">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+          <div>
+            <h1 className="text-5xl md:text-6xl font-black leading-tight tracking-tight">
+              Waitlists & Reservations Built for <span className="text-[#F36D21]">Clover Restaurants</span>
+            </h1>
+            <p className="mt-8 text-xl text-gray-600 leading-relaxed">
+              Qline helps busy restaurants manage walk-ins and reservations in one place,
+              send automated SMS updates, and turn more tables without chaos at the host stand.
+            </p>
 
-        <div className="relative mx-auto max-w-5xl rounded-[32px] overflow-hidden shadow-2xl border-8 border-white">
-          <img src={heroImage} alt="Qline Dashboard Preview" className="w-full h-auto" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#FFFDF9]/20 to-transparent pointer-events-none"></div>
+            <div className="mt-10 flex flex-col sm:flex-row gap-4">
+              <a href="/api/auth/clover" className="bg-[#F36D21] text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#D95D1C] transition-all flex items-center justify-center gap-3 shadow-lg shadow-[#F36D21]/20">
+                <Zap className="w-6 h-6 fill-current" />
+                Login with Clover
+              </a>
+              <button className="px-8 py-4 rounded-xl font-bold text-lg border-2 border-gray-200 hover:bg-gray-50 transition-all text-center">
+                Book a Demo
+              </button>
+            </div>
+
+            <p className="mt-6 text-sm text-gray-400 font-medium flex items-center gap-2 justify-center md:justify-start">
+              <CheckCircle2 size={16} className="text-green-500" />
+              Works with Clover Station, Mini, and Flex.
+            </p>
+          </div>
+
+          <div className="relative">
+            <div className="absolute -inset-4 bg-orange-100/50 rounded-[40px] blur-3xl -z-10"></div>
+            <div className="shadow-2xl rounded-[32px] p-8 bg-white border border-gray-100 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-5">
+                <Users size={120} />
+              </div>
+              <h3 className="font-extrabold text-2xl mb-6 flex items-center gap-2">
+                <Clock className="text-[#F36D21]" /> Today’s Waitlist
+              </h3>
+              <ul className="space-y-4">
+                <li className="flex items-center justify-between p-4 bg-orange-50/50 rounded-2xl border border-orange-100">
+                  <div>
+                    <p className="font-bold text-lg">Sarah M.</p>
+                    <p className="text-sm text-gray-500">Party of 4</p>
+                  </div>
+                  <span className="bg-white px-4 py-1 rounded-full text-[#F36D21] font-bold shadow-sm">15 min</span>
+                </li>
+                <li className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 opacity-80">
+                  <div>
+                    <p className="font-bold text-lg text-gray-700">James R.</p>
+                    <p className="text-sm text-gray-500">Party of 2</p>
+                  </div>
+                  <span className="bg-white px-4 py-1 rounded-full text-gray-400 font-bold shadow-sm">5 min</span>
+                </li>
+                <li className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 opacity-60">
+                  <div>
+                    <p className="font-bold text-lg text-gray-700">Patel Family</p>
+                    <p className="text-sm text-gray-500">Party of 6</p>
+                  </div>
+                  <span className="bg-white px-4 py-1 rounded-full text-gray-300 font-bold shadow-sm">25 min</span>
+                </li>
+              </ul>
+              <p className="mt-6 text-sm text-gray-500 italic text-center font-medium">
+                "Guests receive automatic SMS updates as their turn approaches."
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Benefits */}
-      <section id="benefits" className="px-6 py-24 bg-[#FFFDF9]">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Why Restaurants Love Qline</h2>
-            <p className="text-xl text-gray-600">The modern standard for front-of-house hospitality.</p>
+      {/* HOW IT WORKS SECTION */}
+      <section id="how-it-works" className="py-24 bg-gray-50 px-6">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-black tracking-tight">How Qline Works</h2>
+          <p className="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">From walk‑in to seated in three simple steps.</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mt-20 relative">
+             {/* Connector lines (desktop only) */}
+             <div className="hidden md:block absolute top-12 left-1/3 w-1/3 border-t-2 border-dashed border-gray-200 -z-0"></div>
+            
+            <div className="relative z-10">
+              <div className="w-16 h-16 bg-[#F36D21] text-white rounded-2xl flex items-center justify-center text-3xl font-black mx-auto shadow-lg shadow-orange-200">1</div>
+              <h3 className="text-2xl font-bold mt-6">Add guests in seconds</h3>
+              <p className="mt-4 text-gray-600 leading-relaxed">
+                Hosts add guests by name, party size, and phone number—or guests join via QR code.
+              </p>
+            </div>
+
+            <div className="relative z-10">
+              <div className="w-16 h-16 bg-white text-[#F36D21] border-4 border-[#F36D21] rounded-2xl flex items-center justify-center text-3xl font-black mx-auto shadow-lg">2</div>
+              <h3 className="text-2xl font-bold mt-6">Qline tracks the wait</h3>
+              <p className="mt-4 text-gray-600 leading-relaxed">
+                See an organized list of parties, estimated wait times, and table status.
+              </p>
+            </div>
+
+            <div className="relative z-10">
+              <div className="w-16 h-16 bg-green-500 text-white rounded-2xl flex items-center justify-center text-3xl font-black mx-auto shadow-lg shadow-green-100">3</div>
+              <h3 className="text-2xl font-bold mt-6">Guests get SMS updates</h3>
+              <p className="mt-4 text-gray-600 leading-relaxed">
+                Automatic notifications ensure guests return on time and tables don’t sit empty.
+              </p>
+            </div>
           </div>
-          <div className="grid md:grid-cols-2 gap-12">
-            <div className="flex gap-6">
-              <div className="shrink-0 w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center text-green-600">
-                <BarChart3 className="w-8 h-8" />
+        </div>
+      </section>
+
+      {/* FEATURE GRID */}
+      <section id="features" className="py-32 px-6">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-black tracking-tight">Everything Your Host Stand Needs</h2>
+          <p className="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">Designed specifically for busy Clover restaurants.</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
+            {[
+              { title: "Unified waitlist & reservations", desc: "Manage walk‑ins and reservations in one place.", icon: <Calendar className="w-6 h-6" color="#F36D21"/> },
+              { title: "Smart SMS notifications", desc: "Automatically notify guests when they’re almost up or when their table is ready.", icon: <MessageSquare className="w-6 h-6" color="#F36D21"/> },
+              { title: "Clover‑native workflow", desc: "Seamless login and integration with Clover devices.", icon: <Zap className="w-6 h-6" color="#F36D21"/> },
+              { title: "Analytics & table turns", desc: "Track wait times, no‑shows, and table efficiency.", icon: <BarChart3 className="w-6 h-6" color="#F36D21"/> },
+              { title: "Multi‑device friendly", desc: "Works on Clover Station, tablets, laptops, and phones.", icon: <Smartphone className="w-6 h-6" color="#F36D21"/> },
+              { title: "Simple, predictable pricing", desc: "One flat monthly price with generous SMS limits.", icon: <CheckCircle2 className="w-6 h-6" color="#F36D21"/> },
+            ].map((f, i) => (
+              <div key={i} className="p-10 bg-[#FFFDF9] rounded-3xl border border-gray-100 hover:shadow-xl hover:shadow-gray-100 transition-all text-left">
+                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-gray-50">{f.icon}</div>
+                <h3 className="font-bold text-xl mb-3 leading-tight">{f.title}</h3>
+                <p className="text-gray-600 leading-relaxed">{f.desc}</p>
               </div>
-              <div>
-                <h4 className="text-xl font-bold mb-2">Maximize Table Turns</h4>
-                <p className="text-gray-600">Our intelligent algorithm predicts wait times accurately, keeping your floor moving at peak capacity.</p>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PRICING SECTION */}
+      <section id="pricing" className="py-32 bg-gray-50 px-6">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-black tracking-tight">Simple Pricing For Busy Restaurants</h2>
+          <p className="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">No contracts. No setup fees. Cancel anytime.</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-20 max-w-5xl mx-auto">
+            <div className="bg-white p-12 rounded-[40px] border-4 border-[#F36D21] relative shadow-2xl shadow-orange-100 transform md:scale-105 z-10">
+              <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-[#F36D21] text-white px-8 py-2 rounded-full font-black text-sm uppercase tracking-widest">
+                Most Popular
+              </div>
+              <h3 className="text-3xl font-black mb-2">Qline for Clover</h3>
+              <p className="text-gray-400 font-bold uppercase tracking-widest text-sm mb-6">Full Access</p>
+              <div className="flex items-center justify-center gap-1 mb-8">
+                <span className="text-7xl font-black text-[#1A1A1A] tracking-tighter">$49</span>
+                <div className="text-left leading-none">
+                  <p className="font-bold text-gray-400">/MO</p>
+                  <p className="text-[10px] text-gray-400 font-bold uppercase">PER LOCATION</p>
+                </div>
+              </div>
+
+              <ul className="space-y-4 mb-10 text-left max-w-xs mx-auto">
+                <li className="flex items-center gap-3 font-semibold"><CheckCircle2 className="text-green-500" size={20} /> Unlimited waitlist guests</li>
+                <li className="flex items-center gap-3 font-semibold"><CheckCircle2 className="text-green-500" size={20} /> Unlimited reservations</li>
+                <li className="flex items-center gap-3 font-semibold"><CheckCircle2 className="text-green-500" size={20} /> Includes monthly SMS bundle</li>
+                <li className="flex items-center gap-3 font-semibold"><CheckCircle2 className="text-green-500" size={20} /> Clover login & integration</li>
+                <li className="flex items-center gap-3 font-semibold"><CheckCircle2 className="text-green-500" size={20} /> Email & chat support</li>
+              </ul>
+
+              <a href="/api/auth/clover" className="block w-full bg-[#F36D21] text-white py-5 rounded-2xl font-black text-xl hover:bg-[#D95D1C] transition-all shadow-lg shadow-orange-200">
+                Start with Clover
+              </a>
+            </div>
+
+            <div className="bg-white p-12 rounded-[40px] border border-gray-100 shadow-xl flex flex-col justify-center">
+              <h3 className="text-3xl font-black mb-2">Free Trial</h3>
+              <p className="text-gray-400 font-bold uppercase tracking-widest text-sm mb-6">Explore Features</p>
+              <div className="flex items-center justify-center gap-1 mb-8">
+                <span className="text-7xl font-black text-gray-400 tracking-tighter">$0</span>
+                <div className="text-left leading-none">
+                  <p className="font-bold text-gray-400">14 DAYS</p>
+                </div>
+              </div>
+
+              <ul className="space-y-4 mb-10 text-left max-w-xs mx-auto">
+                <li className="flex items-center gap-3 text-gray-500"><CheckCircle2 className="text-gray-300" size={20} /> Full access to all features</li>
+                <li className="flex items-center gap-3 text-gray-500"><CheckCircle2 className="text-gray-300" size={20} /> Trial SMS credits included</li>
+                <li className="flex items-center gap-3 text-gray-500"><CheckCircle2 className="text-gray-300" size={20} /> No credit card required</li>
+              </ul>
+
+              <a href="/api/auth/clover" className="block w-full py-5 rounded-2xl font-black text-xl border-2 border-gray-200 hover:bg-gray-50 transition-all text-center">
+                Start Free Trial
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* TESTIMONIALS SECTION */}
+      <section className="py-32 px-6">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="text-4xl font-black tracking-tight">What Restaurants Say About Qline</h2>
+          <p className="mt-4 text-xl text-gray-600">Built from real host stand pain points.</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-20">
+            <div className="testimonial-card p-10 shadow-xl shadow-gray-100 rounded-[32px] bg-white border border-gray-50 text-left relative overflow-hidden">
+               <div className="absolute top-0 right-0 p-4 opacity-5 text-9xl leading-none italic font-serif">"</div>
+              <p className="text-xl italic leading-relaxed text-gray-700 relative z-10">
+                “Before Qline, our host stand was chaos on busy nights. Now we know exactly who’s next and guests love getting text updates.”
+              </p>
+              <div className="mt-8 flex items-center gap-4">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center text-[#F36D21] font-bold">JD</div>
+                <div>
+                  <p className="font-bold text-[#1A1A1A]">FOH Manager</p>
+                  <p className="text-sm text-gray-500 font-medium">Casual Dining</p>
+                </div>
               </div>
             </div>
-            <div className="flex gap-6">
-              <div className="shrink-0 w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
-                <Users className="w-8 h-8" />
-              </div>
-              <div>
-                <h4 className="text-xl font-bold mb-2">Enhance Guest Loyalty</h4>
-                <p className="text-gray-600">Personalized SMS updates keep guests informed and happy, reducing walk-aways by up to 40%.</p>
+
+            <div className="testimonial-card p-10 shadow-xl shadow-gray-100 rounded-[32px] bg-white border border-gray-50 text-left relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-5 text-9xl leading-none italic font-serif">"</div>
+              <p className="text-xl italic leading-relaxed text-gray-700 relative z-10">
+                “We turn more tables during peak hours because guests actually come back when we text them. No more shouting names.”
+              </p>
+              <div className="mt-8 flex items-center gap-4">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-bold">BK</div>
+                <div>
+                  <p className="font-bold text-[#1A1A1A]">Owner</p>
+                  <p className="text-sm text-gray-500 font-medium">Bar & Grill</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Pricing */}
-      <section id="pricing" className="px-6 py-24 bg-white border-y border-gray-100">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-4xl font-bold mb-6">Simple, Transparent Pricing</h2>
-          <p className="text-xl text-gray-600 mb-12">No hidden fees. No contracts. Just pure performance.</p>
-          <div className="bg-[#FFFDF9] p-12 rounded-[40px] border-2 border-[#F36D21] relative shadow-2xl shadow-[#F36D21]/10">
-            <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-[#F36D21] text-white px-6 py-2 rounded-full font-bold text-sm uppercase tracking-widest">
-              Most Popular
+      {/* FOOTER REDESIGN */}
+      <footer className="py-20 bg-gray-900 text-gray-400 px-6">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-16">
+          <div className="md:col-span-1">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-8 h-8 bg-[#F36D21] rounded-lg flex items-center justify-center">
+                <Users className="text-white w-5 h-5" />
+              </div>
+              <span className="text-xl font-bold tracking-tight text-white">Qline</span>
             </div>
-            <h3 className="text-2xl font-bold mb-4 text-gray-500 uppercase tracking-widest">All Access</h3>
-            <div className="text-7xl font-black mb-8">$49<span className="text-2xl font-medium text-gray-400">/mo</span></div>
-            <ul className="text-left space-y-4 mb-10 max-w-xs mx-auto">
-              <li className="flex items-center gap-3 font-medium"><div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-[10px]">✓</div> Unlimited Waitlist</li>
-              <li className="flex items-center gap-3 font-medium"><div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-[10px]">✓</div> 500 SMS Notifications</li>
-              <li className="flex items-center gap-3 font-medium"><div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-[10px]">✓</div> Clover POS Sync</li>
-              <li className="flex items-center gap-3 font-medium"><div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-[10px]">✓</div> Advanced Analytics</li>
+            <p className="leading-relaxed">
+              Waitlists and reservations built for Clover restaurants. Keep guests informed, hosts calm, and tables turning.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="text-white font-bold mb-6 flex items-center gap-2 underline decoration-[#F36D21] underline-offset-8">Product</h4>
+            <ul className="space-y-4">
+              <li><a href="#how-it-works" className="hover:text-[#F36D21] transition-colors">How It Works</a></li>
+              <li><a href="#pricing" className="hover:text-[#F36D21] transition-colors">Pricing</a></li>
+              <li><a href="#features" className="hover:text-[#F36D21] transition-colors">Features</a></li>
             </ul>
-            <a href="/api/auth/clover" className="block w-full bg-[#F36D21] text-white py-5 rounded-2xl font-bold text-xl hover:bg-[#D95D1C] transition-all">
-              Start Free Trial
-            </a>
+          </div>
+
+          <div>
+            <h4 className="text-white font-bold mb-6 flex items-center gap-2 underline decoration-[#F36D21] underline-offset-8">For Restaurants</h4>
+            <ul className="space-y-4">
+              <li className="flex items-center gap-2"><ShieldCheck size={16} /> <a href="#" className="hover:text-[#F36D21] transition-colors">Clover Integration</a></li>
+              <li className="flex items-center gap-2"><MessageSquare size={16} /> <a href="#" className="hover:text-[#F36D21] transition-colors">Support</a></li>
+              <li className="flex items-center gap-2"><HelpCircle size={16} /> <a href="#" className="hover:text-[#F36D21] transition-colors">FAQ</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-white font-bold mb-6 flex items-center gap-2 underline decoration-[#F36D21] underline-offset-8">Get Started</h4>
+            <ul className="space-y-4">
+              <li><a href="/api/auth/clover" className="text-[#F36D21] font-bold flex items-center gap-1 group">Login with Clover <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" /></a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Book a Demo</a></li>
+              <li><a href="#" className="hover:text-white transition-colors">Contact Sales</a></li>
+            </ul>
           </div>
         </div>
-      </section>
 
-      {/* Features */}
-      <section id="features" className="px-6 py-24 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Everything you need to manage your floor</h2>
-            <p className="text-gray-600">Built for high-volume restaurants that value guest experience.</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="p-8 bg-[#FFFDF9] rounded-3xl border border-gray-100 hover:border-[#F36D21]/30 transition-all group">
-              <div className="w-12 h-12 bg-[#F36D21]/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-[#F36D21] transition-colors">
-                <Users className="text-[#F36D21] w-6 h-6 group-hover:text-white" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Real-time Waitlist</h3>
-              <p className="text-gray-600 leading-relaxed">Let guests join from their phones via QR code and track their place in line in real-time.</p>
-            </div>
-            <div className="p-8 bg-[#FFFDF9] rounded-3xl border border-gray-100 hover:border-[#F36D21]/30 transition-all group">
-              <div className="w-12 h-12 bg-[#F36D21]/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-[#F36D21] transition-colors">
-                <Calendar className="text-[#F36D21] w-6 h-6 group-hover:text-white" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Seamless Reservations</h3>
-              <p className="text-gray-600 leading-relaxed">Accept bookings online and manage them effortlessly alongside your live waitlist.</p>
-            </div>
-            <div className="p-8 bg-[#FFFDF9] rounded-3xl border border-gray-100 hover:border-[#F36D21]/30 transition-all group">
-              <div className="w-12 h-12 bg-[#F36D21]/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-[#F36D21] transition-colors">
-                <BarChart3 className="text-[#F36D21] w-6 h-6 group-hover:text-white" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">Easy Integration</h3>
-              <p className="text-gray-600 leading-relaxed">Works perfectly with your existing Clover POS to sync merchant data and operations.</p>
-            </div>
-          </div>
+        <div className="max-w-6xl mx-auto mt-20 pt-8 border-t border-gray-800 text-center text-sm font-medium">
+          <p>&copy; 2026 Qline. All rights reserved.</p>
+          <p className="mt-2 text-gray-600 italic">
+            Qline is independently developed and not affiliated with Clover Network, Inc.
+          </p>
         </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="px-6 py-12 border-t border-gray-100 text-center text-gray-500 text-sm">
-        <p>&copy; 2026 Qline. All rights reserved. Designed for Clover App Market.</p>
       </footer>
     </div>
   );
