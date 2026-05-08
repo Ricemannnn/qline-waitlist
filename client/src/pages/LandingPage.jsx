@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Calendar, BarChart3, ChevronRight, Store, Zap, CheckCircle2, MessageSquare, Clock, Smartphone, ShieldCheck, HelpCircle } from 'lucide-react';
+import { Users, Calendar, BarChart3, ChevronRight, Store, Zap, CheckCircle2, MessageSquare, Clock, Smartphone, ShieldCheck, HelpCircle, Mail } from 'lucide-react';
 import heroImage from '../assets/hero.png';
 
 const LandingPage = () => {
@@ -42,9 +42,9 @@ const LandingPage = () => {
                 <Zap className="w-6 h-6 fill-current" />
                 Login with Clover
               </a>
-              <button className="px-8 py-4 rounded-xl font-bold text-lg border-2 border-gray-200 hover:bg-gray-50 transition-all text-center">
+              <a href="#contact" className="px-8 py-4 rounded-xl font-bold text-lg border-2 border-gray-200 hover:bg-gray-50 transition-all text-center flex items-center justify-center">
                 Book a Demo
-              </button>
+              </a>
             </div>
 
             <p className="mt-6 text-sm text-gray-400 font-medium flex items-center gap-2 justify-center md:justify-start">
@@ -251,6 +251,29 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* CONTACT SECTION */}
+      <section id="contact" className="py-32 px-6 bg-white">
+        <div className="max-w-4xl mx-auto bg-[#F36D21] rounded-[48px] p-12 md:p-20 text-white text-center shadow-2xl shadow-orange-200 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
+          <div className="relative z-10">
+            <h2 className="text-4xl md:text-5xl font-black mb-6">Ready to see Qline in action?</h2>
+            <p className="text-xl text-white/90 mb-12 max-w-xl mx-auto">
+              Our team would love to show you how Qline can transform your restaurant's guest experience.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+              <a href="mailto:sales@qline-waitlist.com?subject=Qline Demo Request" className="w-full sm:w-auto bg-white text-[#F36D21] px-10 py-5 rounded-2xl font-black text-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-3 shadow-xl">
+                <Mail size={24} />
+                Request a Demo
+              </a>
+              <div className="text-white/80 font-bold uppercase tracking-widest text-sm">
+                or email us at <br />
+                <span className="text-white text-lg">sales@qline.com</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* FOOTER REDESIGN */}
       <footer className="py-20 bg-gray-900 text-gray-400 px-6">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-16">
@@ -279,7 +302,7 @@ const LandingPage = () => {
             <h4 className="text-white font-bold mb-6 flex items-center gap-2 underline decoration-[#F36D21] underline-offset-8">For Restaurants</h4>
             <ul className="space-y-4">
               <li className="flex items-center gap-2"><ShieldCheck size={16} /> <a href="#" className="hover:text-[#F36D21] transition-colors">Clover Integration</a></li>
-              <li className="flex items-center gap-2"><MessageSquare size={16} /> <a href="#" className="hover:text-[#F36D21] transition-colors">Support</a></li>
+              <li className="flex items-center gap-2"><MessageSquare size={16} /> <a href="mailto:support@qline.com" className="hover:text-[#F36D21] transition-colors">Support</a></li>
               <li className="flex items-center gap-2"><HelpCircle size={16} /> <a href="#" className="hover:text-[#F36D21] transition-colors">FAQ</a></li>
             </ul>
           </div>
@@ -288,8 +311,8 @@ const LandingPage = () => {
             <h4 className="text-white font-bold mb-6 flex items-center gap-2 underline decoration-[#F36D21] underline-offset-8">Get Started</h4>
             <ul className="space-y-4">
               <li><a href="/api/auth/clover" className="text-[#F36D21] font-bold flex items-center gap-1 group">Login with Clover <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" /></a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Book a Demo</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Contact Sales</a></li>
+              <li><a href="#contact" className="hover:text-white transition-colors">Book a Demo</a></li>
+              <li><a href="mailto:sales@qline.com" className="hover:text-white transition-colors">Contact Sales</a></li>
             </ul>
           </div>
         </div>
