@@ -2,7 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import db from './db.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import { getCloverOAuthUrl, exchangeCodeForToken, getMerchantInfo, getTables } from './clover.js';
 import { sendTableReadyNotification } from './notifications.js';
 
@@ -15,6 +19,9 @@ const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
+
+// Static files from the React app
+app.use(express.static(path.join(__dirname, '../client/dist')));
 
 // Basic health check
 app.get('/api/health', (req, res) => {
@@ -160,6 +167,11 @@ app.get('/api/reservations/:restaurantId', (req, res) => {
   const { restaurantId } = req.params;
   const list = db.prepare('SELECT * FROM reservations WHERE restaurant_id = ? ORDER BY reservation_time ASC').all(restaurantId);
   res.json(list);
+});
+
+// All other GET requests not handled before will return our React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
