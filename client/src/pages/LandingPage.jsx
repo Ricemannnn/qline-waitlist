@@ -8,12 +8,12 @@ const LandingPage = () => {
     <div className="min-h-screen bg-[#FFFDF9] text-[#1A1A1A] font-sans">
       {/* Header */}
       <header className="px-6 py-4 flex items-center justify-between border-b border-gray-100 sticky top-0 bg-[#FFFDF9]/80 backdrop-blur-md z-50">
-        <div className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <div className="w-8 h-8 bg-[#F36D21] rounded-lg flex items-center justify-center">
             <Users className="text-white w-5 h-5" />
           </div>
           <span className="text-xl font-bold tracking-tight">Qline</span>
-        </div>
+        </Link>
         <nav className="hidden md:flex items-center gap-8">
           <a href="#features" className="text-sm font-medium hover:text-[#F36D21] transition-colors">Features</a>
           <a href="#benefits" className="text-sm font-medium hover:text-[#F36D21] transition-colors">Benefits</a>

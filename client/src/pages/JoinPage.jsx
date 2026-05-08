@@ -56,12 +56,12 @@ const JoinPage = () => {
   return (
     <div className="min-h-screen bg-[#FFFDF9] py-12 px-6">
       <div className="max-w-md mx-auto">
-        <div className="flex items-center gap-2 mb-12 justify-center">
+        <Link to="/" className="flex items-center gap-2 mb-12 justify-center hover:opacity-80 transition-opacity">
           <div className="w-8 h-8 bg-[#F36D21] rounded-lg flex items-center justify-center">
             <Users className="text-white w-5 h-5" />
           </div>
           <span className="text-xl font-bold tracking-tight">Qline</span>
-        </div>
+        </Link>
 
         <div className="text-center mb-10">
           <h1 className="text-3xl font-bold mb-2">Join the Waitlist</h1>

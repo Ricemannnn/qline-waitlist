@@ -224,14 +224,13 @@ const HostDashboard = () => {
 
   return (
     <div className="min-h-screen bg-[#FFFDF9] flex flex-col">
-      {/* Navbar omitted for brevity - same as before */}
       <nav className="h-16 px-6 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-10">
-        <div className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <div className="w-8 h-8 bg-[#F36D21] rounded-lg flex items-center justify-center">
             <Users className="text-white w-5 h-5" />
           </div>
           <span className="text-xl font-bold tracking-tight">Qline</span>
-        </div>
+        </Link>
         
         <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-xl">
           <button 
