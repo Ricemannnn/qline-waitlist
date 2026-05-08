@@ -113,7 +113,7 @@ seedDemo();
 // Waitlist API
 app.get('/api/waitlist/:restaurantId', (req, res) => {
   const { restaurantId } = req.params;
-  const list = db.prepare('SELECT * FROM waitlist WHERE restaurant_id = ? AND status = \'waiting\' ORDER BY joined_at ASC').all(restaurantId);
+  const list = db.prepare("SELECT * FROM waitlist WHERE restaurant_id = ? AND status = 'waiting' ORDER BY joined_at ASC").all(restaurantId);
   res.json(list);
 });
 
