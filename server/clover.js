@@ -3,10 +3,15 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const CLOVER_CLIENT_ID = process.env.CLOVER_CLIENT_ID;
-const CLOVER_CLIENT_SECRET = process.env.CLOVER_CLIENT_SECRET;
-const CLOVER_API_URL = process.env.CLOVER_API_URL || 'https://api.clover.com';
+// Support both naming conventions
+const CLOVER_CLIENT_ID = process.env.CLOVER_APP_ID || process.env.CLOVER_CLIENT_ID;
+const CLOVER_CLIENT_SECRET = process.env.CLOVER_APP_SECRET || process.env.CLOVER_CLIENT_SECRET;
 const CLOVER_ENVIRONMENT = process.env.CLOVER_ENVIRONMENT || 'sandbox'; // 'sandbox' or 'prod'
+
+// Auto-select API URL based on environment
+const CLOVER_API_URL = CLOVER_ENVIRONMENT === 'sandbox' 
+  ? 'https://sandbox.dev.clover.com' 
+  : 'https://api.clover.com';
 
 const getCloverOAuthUrl = (redirectUri) => {
   const baseUrl = CLOVER_ENVIRONMENT === 'sandbox' 
@@ -21,15 +26,22 @@ const exchangeCodeForToken = async (code) => {
     ? 'https://sandbox.dev.clover.com' 
     : 'https://www.clover.com';
 
-  const response = await axios.get(`${baseUrl}/oauth/token`, {
-    params: {
-      client_id: CLOVER_CLIENT_ID,
-      client_secret: CLOVER_CLIENT_SECRET,
-      code: code
-    }
-  });
+  console.log(`Exchanging code for token at ${baseUrl}...`);
 
-  return response.data; // { access_token: '...', ... }
+  try {
+    const response = await axios.get(`${baseUrl}/oauth/token`, {
+      params: {
+        client_id: CLOVER_CLIENT_ID,
+        client_secret: CLOVER_CLIENT_SECRET,
+        code: code
+      }
+    });
+
+    return response.data; // { access_token: '...', ... }
+  } catch (error) {
+    console.error('Clover Token Exchange Error details:', error.response?.data || error.message);
+    throw error;
+  }
 };
 
 const getMerchantInfo = async (merchantId, accessToken) => {
