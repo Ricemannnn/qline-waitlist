@@ -99,7 +99,7 @@ const GuestStatus = () => {
               <div className="w-full bg-gray-100 h-3 rounded-full mb-10 overflow-hidden">
                 <div 
                   className="bg-[#F36D21] h-full rounded-full transition-all duration-1000 ease-out"
-                  style={{ width: `${Math.max(5, 100 - (ahead * 10))}%` }}
+                  style={{ width: `${Math.min(100, 100 / (ahead + 1))}%` }}
                 ></div>
               </div>
 

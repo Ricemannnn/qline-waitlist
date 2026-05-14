@@ -23,6 +23,14 @@ const JoinPage = () => {
     setIsSubmitting(true);
     setError('');
 
+    // Phone validation
+    const cleanPhone = formData.phone_number.replace(/\D/g, '');
+    if (cleanPhone.length < 10) {
+      setError('Please enter a valid 10-digit phone number.');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const response = await joinWaitlist(restaurantId, formData);
       const guestId = response.data.id;

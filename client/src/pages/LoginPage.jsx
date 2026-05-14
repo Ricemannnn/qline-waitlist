@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Users, Mail, Lock, Store, ArrowRight, AlertCircle, Zap } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { login, register } from '../api';
 
 const LoginPage = () => {
@@ -13,33 +14,31 @@ const LoginPage = () => {
     name: ''
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
 
     try {
       if (isLogin) {
         const response = await login({ email: formData.email, password: formData.password });
-        localStorage.setItem('qline_token', response.data.token);
-        localStorage.setItem('qline_merchant_id', response.data.user.restaurant_id);
+        // Session is handled by httpOnly cookie now
+        toast.success('Signed in successfully!');
         navigate(`/host?merchantId=${response.data.user.restaurant_id}`);
       } else {
         await register(formData);
         setIsLogin(true);
-        setError('Account created! Please log in.');
+        toast.success('Account created! Please sign in.');
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Authentication failed. Please try again.');
+      toast.error(err.response?.data?.error || 'Authentication failed.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#FFFDF9] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#FFFDF9] flex flex-col justify-center py-12 px-6">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <Link to="/" className="flex items-center gap-2 justify-center mb-6">
           <div className="w-10 h-10 bg-[#F36D21] rounded-xl flex items-center justify-center">
@@ -48,7 +47,7 @@ const LoginPage = () => {
           <span className="text-2xl font-black tracking-tight">Qline</span>
         </Link>
         <h2 className="text-center text-3xl font-extrabold text-gray-900">
-          {isLogin ? 'Sign in to your dashboard' : 'Create your restaurant account'}
+          {isLogin ? 'Host Login' : 'Create Account'}
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
           Or{' '}
@@ -61,7 +60,7 @@ const LoginPage = () => {
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-6">
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-10 shadow-2xl shadow-gray-200/50 rounded-[32px] border border-gray-100">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {!isLogin && (
@@ -73,7 +72,7 @@ const LoginPage = () => {
                     <input
                       required
                       type="text"
-                      className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#F36D21] focus:border-[#F36D21] sm:text-sm"
+                      className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-[#F36D21] focus:border-[#F36D21] sm:text-sm"
                       placeholder="The Golden Fork"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -87,13 +86,12 @@ const LoginPage = () => {
                     <input
                       required
                       type="text"
-                      className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#F36D21] focus:border-[#F36D21] sm:text-sm"
+                      className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-[#F36D21] focus:border-[#F36D21] sm:text-sm"
                       placeholder="my-restaurant-1"
                       value={formData.restaurant_id}
                       onChange={(e) => setFormData({ ...formData, restaurant_id: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
                     />
                   </div>
-                  <p className="mt-1 text-[10px] text-gray-400 uppercase font-bold tracking-widest ml-1">No spaces, letters/numbers only</p>
                 </div>
               </>
             )}
@@ -105,7 +103,7 @@ const LoginPage = () => {
                 <input
                   required
                   type="email"
-                  className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#F36D21] focus:border-[#F36D21] sm:text-sm"
+                  className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-[#F36D21] focus:border-[#F36D21] sm:text-sm"
                   placeholder="admin@restaurant.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -120,7 +118,7 @@ const LoginPage = () => {
                 <input
                   required
                   type="password"
-                  className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#F36D21] focus:border-[#F36D21] sm:text-sm"
+                  className="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-[#F36D21] focus:border-[#F36D21] sm:text-sm"
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -128,17 +126,10 @@ const LoginPage = () => {
               </div>
             </div>
 
-            {error && (
-              <div className="bg-red-50 p-4 rounded-xl flex items-center gap-3 text-red-600 text-sm font-medium border border-red-100">
-                <AlertCircle size={18} />
-                {error}
-              </div>
-            )}
-
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-lg text-lg font-black text-white bg-[#F36D21] hover:bg-[#D95D1C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#F36D21] transition-all disabled:opacity-50"
+              className="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-lg text-lg font-black text-white bg-[#F36D21] hover:bg-[#D95D1C] transition-all disabled:opacity-50"
             >
               {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
             </button>
@@ -150,7 +141,7 @@ const LoginPage = () => {
                 <div className="w-full border-t border-gray-200"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-400 font-bold uppercase tracking-widest">Or continue with</span>
+                <span className="px-4 bg-white text-gray-400 font-bold uppercase tracking-widest text-[10px]">Or continue with</span>
               </div>
             </div>
 
@@ -165,10 +156,6 @@ const LoginPage = () => {
             </div>
           </div>
         </div>
-        
-        <p className="mt-8 text-center text-xs text-gray-400">
-          By signing in, you agree to Qline's Terms of Service and Privacy Policy.
-        </p>
       </div>
     </div>
   );

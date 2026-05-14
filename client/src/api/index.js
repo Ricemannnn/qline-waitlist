@@ -4,21 +4,8 @@ const API_BASE_URL = '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true, // IMPORTANT: Allows sending/receiving httpOnly cookies
 });
-
-// Request interceptor to add JWT token
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('qline_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// Auth
-export const login = (data) => api.post('/auth/login', data);
-export const register = (data) => api.post('/auth/register', data);
-export const getMe = () => api.get('/auth/me');
 
 // Waitlist
 export const getWaitlist = (restaurantId) => api.get(`/waitlist/${restaurantId}`);
@@ -41,6 +28,12 @@ export const getTables = (restaurantId) => api.get(`/tables/${restaurantId}`);
 export const addTable = (restaurantId, data) => api.post(`/tables/${restaurantId}`, data);
 export const updateTable = (id, data) => api.patch(`/tables/${id}`, data);
 export const getCloverTables = (merchantId) => api.get(`/clover/tables/${merchantId}`);
+
+// Auth
+export const login = (data) => api.post('/auth/login', data);
+export const register = (data) => api.post('/auth/register', data);
+export const logout = () => api.post('/auth/logout');
+export const getMe = () => api.get('/auth/me');
 
 // Clover Status
 export const getCloverStatus = (merchantId) => api.get(`/auth/clover/status/${merchantId}`);
