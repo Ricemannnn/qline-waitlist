@@ -106,41 +106,6 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// DEBUG: List dist files
-app.get('/api/debug-dist', (req, res) => {
-  const paths = {
-    dirname: __dirname,
-    cwd: process.cwd(),
-    distDirname: path.join(__dirname, '../client/dist'),
-    distCwd: path.join(process.cwd(), 'client/dist')
-  };
-  
-  const distPath = fs.existsSync(paths.distDirname) ? paths.distDirname : paths.distCwd;
-  
-  try {
-    const files = [];
-    if (fs.existsSync(distPath)) {
-      const scan = (dir) => {
-        const list = fs.readdirSync(dir);
-        list.forEach(file => {
-          const fullPath = path.join(dir, file);
-          if (fs.statSync(fullPath).isDirectory()) {
-            scan(fullPath);
-          } else {
-            files.push(path.relative(distPath, fullPath));
-          }
-        });
-      };
-      scan(distPath);
-      res.json({ exists: true, distPath, paths, files });
-    } else {
-      res.json({ exists: false, distPath, paths });
-    }
-  } catch (err) {
-    res.json({ error: err.message, distPath, paths });
-  }
-});
-
 // --- Auth Endpoints ---
 
 // Register
