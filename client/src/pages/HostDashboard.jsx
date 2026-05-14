@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { 
-  Users, Calendar, Settings, Bell, LogOut, Layout, QrCode, Zap, CheckCircle2, ChevronRight, HelpCircle
+  Users, Calendar, Settings, Bell, LogOut, LayoutDashboard, QrCode, Zap, CheckCircle2, ChevronRight, HelpCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { 
@@ -259,7 +259,7 @@ const HostDashboard = () => {
           {[
             { id: 'waitlist', icon: <Users size={18} />, label: 'Waitlist' },
             { id: 'reservations', icon: <Calendar size={18} />, label: 'Reservations' },
-            { id: 'tables', icon: <Layout size={18} />, label: 'Tables' },
+            { id: 'tables', icon: <LayoutDashboard size={18} />, label: 'Tables' },
             { id: 'settings', icon: <Settings size={18} />, label: 'Settings' }
           ].map(tab => (
             <button 

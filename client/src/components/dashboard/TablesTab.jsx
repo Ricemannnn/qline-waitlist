@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Plus } from 'lucide-react';
+import { LayoutDashboard, Plus } from 'lucide-react';
 
 const TablesTab = ({ tables, onAddClick, onUpdateStatus }) => {
   return (
@@ -21,7 +21,7 @@ const TablesTab = ({ tables, onAddClick, onUpdateStatus }) => {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
           {tables.length === 0 ? (
             <div className="col-span-full py-20 text-center text-gray-400">
-              <Layout className="w-12 h-12 mx-auto mb-4 opacity-20" />
+              <LayoutDashboard className="w-12 h-12 mx-auto mb-4 opacity-20" />
               <p>No tables defined yet.</p>
               <p className="text-sm">Click 'Add Table' to start building your floor plan.</p>
             </div>

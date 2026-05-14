@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Users, Calendar, ChevronRight, Zap, CheckCircle2, 
-  MessageSquare, Clock, Smartphone, ShieldCheck, HelpCircle, Mail, Lock, Menu, X 
+  MessageSquare, Clock, Smartphone, ShieldCheck, HelpCircle, Mail, Lock, Menu, X, LayoutDashboard
 } from 'lucide-react';
 
 const LandingPage = () => {
@@ -206,7 +206,7 @@ const LandingPage = () => {
               { title: "Unified waitlist & reservations", desc: "Manage walk‑ins and reservations in one place.", icon: <Calendar className="w-6 h-6 text-[#F36D21]"/> },
               { title: "Smart SMS notifications", desc: "Automatically notify guests when their table is ready.", icon: <MessageSquare className="w-6 h-6 text-[#F36D21]"/> },
               { title: "Clover & Web access", desc: "Login via Clover or email/password on any device.", icon: <Lock className="w-6 h-6 text-[#F36D21]"/> },
-              { title: "Table Management", desc: "Track available tables and floor plan status.", icon: <Layout className="w-6 h-6 text-[#F36D21]"/> },
+              { title: "Table Management", desc: "Track available tables and floor plan status.", icon: <LayoutDashboard className="w-6 h-6 text-[#F36D21]"/> },
               { title: "Multi‑device friendly", desc: "Works on Clover, iPads, tablets, and laptops.", icon: <Smartphone className="w-6 h-6 text-[#F36D21]"/> },
               { title: "Simple Pricing", desc: "One flat monthly price with no contracts.", icon: <CheckCircle2 className="w-6 h-6 text-[#F36D21]"/> },
             ].map((f, i) => (
