@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { Users, Calendar, Settings, Plus, Bell, Check, X, Search, QrCode, Send, Zap, BarChart3, LogOut } from 'lucide-react';
+import { Users, Calendar, Settings, Plus, Bell, Check, X, Search, QrCode, Send, Zap, BarChart3, LogOut, Phone } from 'lucide-react';
 import { 
   getWaitlist, updateWaitlistStatus, notifyGuest, getReservations, 
   getCloverStatus, getSettings, updateSettings, addReservation, 
-  updateReservationStatus, getMe 
+  updateReservationStatus, getMe, joinWaitlist 
 } from '../api';
 
 const HostDashboard = () => {
@@ -20,13 +20,17 @@ const HostDashboard = () => {
   const [currentMerchantId, setCurrentMerchantId] = useState(null);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   
+  // Modals state
   const [showResModal, setShowResModal] = useState(false);
+  const [showWaitlistModal, setShowWaitlistModal] = useState(false);
+  
+  // Forms state
   const [newRes, setNewRes] = useState({ guest_name: '', party_size: 2, phone_number: '', reservation_time: '' });
+  const [newWaitlist, setNewWaitlist] = useState({ guest_name: '', party_size: 2, phone_number: '' });
   
   const urlMerchantId = searchParams.get('merchantId');
 
   const checkAuth = async () => {
-    // 1. Check for Regular Password Login (JWT)
     const token = localStorage.getItem('qline_token');
     if (token) {
       try {
@@ -37,14 +41,11 @@ const HostDashboard = () => {
         setLoading(false);
         return;
       } catch (err) {
-        console.log('JWT expired or invalid, trying Clover...');
         localStorage.removeItem('qline_token');
       }
     }
 
-    // 2. Check for Clover OAuth Flow
     if (!urlMerchantId) {
-      // Demo fallback
       if (window.location.hostname === 'localhost' || window.location.hostname.includes('replit')) {
         setIsAuthenticated(true);
         setCurrentMerchantId('demo-1');
@@ -171,6 +172,19 @@ const HostDashboard = () => {
     }
   };
 
+  const handleAddWaitlist = async (e) => {
+    e.preventDefault();
+    try {
+      await joinWaitlist(currentMerchantId, newWaitlist);
+      setShowWaitlistModal(false);
+      setNewWaitlist({ guest_name: '', party_size: 2, phone_number: '' });
+      fetchWaitlist();
+    } catch (err) {
+      console.error('Failed to add to waitlist:', err);
+      alert('Failed to add party to waitlist');
+    }
+  };
+
   const handleNotify = async (id) => {
     try {
       await notifyGuest(currentMerchantId, id);
@@ -181,6 +195,8 @@ const HostDashboard = () => {
     }
   };
 
+  const joinUrl = `${window.location.origin}/join?restaurantId=${currentMerchantId || 'demo-1'}`;
+
   const renderWaitlist = () => (
     <div className="flex-1 flex flex-col gap-6 overflow-hidden">
       <div className="flex items-center justify-between">
@@ -188,7 +204,10 @@ const HostDashboard = () => {
           <h1 className="text-2xl font-bold">Waitlist</h1>
           <p className="text-gray-500 text-sm font-medium">Manage the live queue</p>
         </div>
-        <button className="bg-[#F36D21] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-[#D95D1C] transition-all shadow-lg shadow-[#F36D21]/20">
+        <button 
+          onClick={() => setShowWaitlistModal(true)}
+          className="bg-[#F36D21] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-[#D95D1C] transition-all shadow-lg shadow-[#F36D21]/20"
+        >
           <Plus className="w-5 h-5" /> Add Party
         </button>
       </div>
@@ -277,6 +296,60 @@ const HostDashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Add Waitlist Modal */}
+      {showWaitlistModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
+          <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="text-xl font-bold">Add to Waitlist</h2>
+              <button onClick={() => setShowWaitlistModal(false)} className="p-2 hover:bg-gray-100 rounded-full">
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+            <form onSubmit={handleAddWaitlist} className="p-8 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold mb-1">Guest Name</label>
+                <input 
+                  required
+                  type="text" 
+                  value={newWaitlist.guest_name}
+                  onChange={(e) => setNewWaitlist({...newWaitlist, guest_name: e.target.value})}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#F36D21]" 
+                  placeholder="Last name or full name"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold mb-1">Party Size</label>
+                  <input 
+                    required
+                    type="number" 
+                    min="1"
+                    value={newWaitlist.party_size}
+                    onChange={(e) => setNewWaitlist({...newWaitlist, party_size: parseInt(e.target.value)})}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#F36D21]" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-1">Phone Number</label>
+                  <input 
+                    required
+                    type="tel" 
+                    value={newWaitlist.phone_number}
+                    onChange={(e) => setNewWaitlist({...newWaitlist, phone_number: e.target.value})}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#F36D21]" 
+                    placeholder="(555) 000-0000"
+                  />
+                </div>
+              </div>
+              <button type="submit" className="w-full bg-[#F36D21] text-white py-3 rounded-xl font-bold mt-4 hover:bg-[#D95D1C] transition-all">
+                Add to Waitlist
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -604,7 +677,7 @@ const HostDashboard = () => {
             <div className="bg-gray-50 aspect-square rounded-2xl flex items-center justify-center mb-6 border-2 border-dashed border-gray-200">
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                 <img 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(window.location.origin + '/join')}`} 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(joinUrl)}`} 
                   alt="QR Code" 
                   className="w-32 h-32"
                 />
@@ -615,10 +688,18 @@ const HostDashboard = () => {
               <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg border border-gray-100">
                 <input 
                   readOnly 
-                  value={window.location.origin + '/join'} 
+                  value={joinUrl} 
                   className="bg-transparent text-xs text-gray-500 outline-none flex-1 truncate"
                 />
-                <button className="text-[10px] font-bold text-[#F36D21] hover:underline uppercase">Copy</button>
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(joinUrl);
+                    alert('Link copied to clipboard!');
+                  }}
+                  className="text-[10px] font-bold text-[#F36D21] hover:underline uppercase"
+                >
+                  Copy
+                </button>
               </div>
             </div>
           </div>

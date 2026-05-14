@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Users, Phone, MessageSquare, CheckCircle2 } from 'lucide-react';
 import { joinWaitlist } from '../api';
 
 const JoinPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState({
     guest_name: '',
     party_size: 2,
@@ -13,7 +14,9 @@ const JoinPage = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const restaurantId = 'demo-1'; 
+  
+  // Get restaurantId from URL, fallback to demo-1
+  const restaurantId = searchParams.get('restaurantId') || 'demo-1'; 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
