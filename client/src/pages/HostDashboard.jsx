@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { 
-  Users, Calendar, Settings, Bell, LogOut, Layout, QrCode, Zap
+  Users, Calendar, Settings, Bell, LogOut, Layout, QrCode, Zap, CheckCircle2, ChevronRight, HelpCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { 
@@ -31,6 +31,7 @@ const HostDashboard = () => {
   const [merchantName, setMerchantName] = useState('Restaurant');
   const [currentMerchantId, setCurrentMerchantId] = useState(null);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   
   // Modals state
   const [showResModal, setShowResModal] = useState(false);
@@ -50,6 +51,11 @@ const HostDashboard = () => {
       setIsAuthenticated(true);
       setMerchantName(response.data.restaurant_name);
       setCurrentMerchantId(response.data.restaurant_id);
+      
+      // Show onboarding if they have no tables and no waitlist settings
+      if (response.data.new_account) {
+        setShowOnboarding(true);
+      }
       setLoading(false);
     } catch (err) {
       if (!urlMerchantId) {
@@ -98,6 +104,11 @@ const HostDashboard = () => {
       setReservations(res.data);
       setSettings(sett.data);
       setTables(tbl.data);
+      
+      // Auto-show onboarding if brand new
+      if (tbl.data.length === 0 && wl.data.entries.length === 0) {
+        setShowOnboarding(true);
+      }
     } catch (err) {
       console.error('Data fetch error:', err);
     }
@@ -110,7 +121,7 @@ const HostDashboard = () => {
   useEffect(() => {
     if (isAuthenticated && currentMerchantId) {
       fetchData();
-      const interval = setInterval(fetchData, 5000);
+      const interval = setInterval(fetchData, 10000); // 10s refresh for host is fine
       return () => clearInterval(interval);
     }
   }, [isAuthenticated, currentMerchantId]);
@@ -216,12 +227,15 @@ const HostDashboard = () => {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#FFFDF9] flex items-center justify-center p-6 text-center">
-        <div className="max-w-md">
-          <h1 className="text-3xl font-bold mb-6">Login Required</h1>
+        <div className="max-w-md bg-white p-10 rounded-[40px] shadow-xl border border-gray-100">
+          <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Lock className="text-[#F36D21] w-10 h-10" />
+          </div>
+          <h1 className="text-3xl font-black mb-4">Login Required</h1>
           <p className="text-gray-500 mb-8">Please sign in to your dashboard to manage your restaurant.</p>
           <div className="flex flex-col gap-4">
-            <Link to="/login" className="bg-[#F36D21] text-white px-8 py-3 rounded-xl font-bold">Sign In</Link>
-            <Link to="/" className="text-gray-400">Back to Home</Link>
+            <Link to="/login" className="bg-[#F36D21] text-white px-8 py-3 rounded-2xl font-black text-lg hover:bg-[#D95D1C] transition-all shadow-lg shadow-orange-200">Sign In</Link>
+            <Link to="/" className="text-gray-400 font-bold hover:text-gray-600">Back to Home</Link>
           </div>
         </div>
       </div>
@@ -233,25 +247,25 @@ const HostDashboard = () => {
 
   return (
     <div className="min-h-screen bg-[#FFFDF9] flex flex-col">
-      <nav className="h-16 px-6 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-50">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-[#F36D21] rounded-lg flex items-center justify-center text-white">
-            <Users size={20} />
+      <nav className="h-20 px-6 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-50">
+        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-all">
+          <div className="w-10 h-10 bg-[#F36D21] rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-200">
+            <Users size={24} />
           </div>
-          <span className="text-xl font-bold">Qline</span>
+          <span className="text-2xl font-black tracking-tight">Qline</span>
         </Link>
         
-        <div className="flex items-center gap-1 bg-gray-50 p-1 rounded-xl overflow-x-auto">
+        <div className="flex items-center gap-1 bg-gray-50 p-1.5 rounded-2xl overflow-x-auto max-w-[50%] no-scrollbar">
           {[
-            { id: 'waitlist', icon: <Users size={16} />, label: 'Waitlist' },
-            { id: 'reservations', icon: <Calendar size={16} />, label: 'Reservations' },
-            { id: 'tables', icon: <Layout size={16} />, label: 'Tables' },
-            { id: 'settings', icon: <Settings size={16} />, label: 'Settings' }
+            { id: 'waitlist', icon: <Users size={18} />, label: 'Waitlist' },
+            { id: 'reservations', icon: <Calendar size={18} />, label: 'Reservations' },
+            { id: 'tables', icon: <Layout size={18} />, label: 'Tables' },
+            { id: 'settings', icon: <Settings size={18} />, label: 'Settings' }
           ].map(tab => (
             <button 
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all shrink-0 ${activeTab === tab.id ? 'bg-[#F36D21]/10 text-[#F36D21]' : 'text-gray-500 hover:bg-gray-100'}`}
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shrink-0 ${activeTab === tab.id ? 'bg-white text-[#F36D21] shadow-sm' : 'text-gray-400 hover:text-gray-600 hover:bg-white/50'}`}
             >
               {tab.icon} {tab.label}
             </button>
@@ -259,14 +273,43 @@ const HostDashboard = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          <button onClick={handleLogout} className="text-gray-500 hover:text-red-500 font-bold text-sm flex items-center gap-1">
-            <LogOut size={16} /> <span className="hidden sm:inline">Logout</span>
-          </button>
-          <div className="w-10 h-10 bg-[#F36D21] rounded-full flex items-center justify-center text-white font-bold">
-            {merchantName.substring(0, 2).toUpperCase()}
+          <div className="hidden lg:flex flex-col items-end">
+            <span className="text-sm font-black text-gray-900">{merchantName}</span>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div> Live Stand
+            </span>
           </div>
+          <button onClick={handleLogout} className="text-gray-400 hover:text-red-500 transition-colors p-2" title="Logout">
+            <LogOut size={20} />
+          </button>
         </div>
       </nav>
+
+      {showOnboarding && (
+        <div className="m-6 mb-0 p-6 bg-gradient-to-r from-[#F36D21] to-[#F38B21] rounded-[32px] text-white shadow-xl shadow-orange-200/50 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+          <div className="relative z-10 flex items-center gap-6">
+            <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shrink-0">
+              <CheckCircle2 size={32} />
+            </div>
+            <div>
+              <h2 className="text-2xl font-black tracking-tight">Welcome to Qline Stand!</h2>
+              <p className="text-white/80 font-medium max-w-lg">Let's get your host stand ready for service. Complete these 3 steps to start taking guests.</p>
+            </div>
+          </div>
+          <div className="relative z-10 flex items-center gap-4 w-full md:w-auto">
+             <button 
+              onClick={() => { setActiveTab('settings'); setShowOnboarding(false); }}
+              className="flex-1 md:flex-none bg-white text-[#F36D21] px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-50 transition-all"
+             >
+               Start Setup <ChevronRight size={18} />
+             </button>
+             <button onClick={() => setShowOnboarding(false)} className="px-4 py-3 text-white/60 hover:text-white font-bold transition-all">Dismiss</button>
+          </div>
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <Users size={120} />
+          </div>
+        </div>
+      )}
 
       <main className="flex-1 flex flex-col md:flex-row gap-6 p-6 overflow-hidden">
         <ErrorBoundary>
@@ -307,31 +350,61 @@ const HostDashboard = () => {
 
         {/* Sidebar */}
         <div className="w-full md:w-80 flex flex-col gap-6">
-          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <QrCode className="text-blue-600" size={24} />
-              <h3 className="font-bold">Guest Join Link</h3>
+          <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.08] transition-all">
+              <QrCode size={120} />
             </div>
-            <div className="bg-gray-50 aspect-square rounded-2xl flex items-center justify-center mb-6 border border-gray-200">
+            <div className="flex items-center gap-3 mb-6 relative z-10">
+              <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+                <QrCode size={20} />
+              </div>
+              <h3 className="font-black text-gray-900">Guest Join QR</h3>
+            </div>
+            <div className="bg-gray-50 aspect-square rounded-[32px] flex items-center justify-center mb-6 border-2 border-dashed border-gray-200 group-hover:border-blue-100 transition-all">
                <img 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(joinUrl)}`} 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(joinUrl)}`} 
                   alt="QR Code" 
-                  className="w-32 h-32"
+                  className="w-40 h-40"
                 />
             </div>
-            <input readOnly value={joinUrl} className="w-full text-xs p-2 bg-gray-50 rounded border border-gray-100" />
-            <button 
-              onClick={() => { navigator.clipboard.writeText(joinUrl); toast.success('Copied!'); }}
-              className="mt-2 w-full py-2 bg-gray-900 text-white rounded-lg font-bold text-sm"
-            >
-              Copy Link
-            </button>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 text-center">Print this for your host stand</p>
+            <div className="flex flex-col gap-2 relative z-10">
+              <button 
+                onClick={() => { navigator.clipboard.writeText(joinUrl); toast.success('Link copied!'); }}
+                className="w-full py-4 bg-gray-900 text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-black shadow-lg"
+              >
+                Copy URL
+              </button>
+              <button 
+                onClick={() => window.print()}
+                className="w-full py-3 bg-white border-2 border-gray-100 text-gray-400 rounded-2xl font-bold text-sm hover:border-blue-100 hover:text-blue-500 transition-all"
+              >
+                Print Sign
+              </button>
+            </div>
           </div>
           
-          <div className="bg-[#F36D21] p-6 rounded-3xl text-white shadow-xl shadow-[#F36D21]/20">
-            <h3 className="font-bold mb-2">Support</h3>
-            <p className="text-sm text-white/80 mb-6">Need help? We're here for you 24/7.</p>
-            <a href="mailto:support@qline.com" className="block w-full bg-white text-[#F36D21] py-3 rounded-xl font-bold text-center text-sm">Contact Support</a>
+          <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-orange-50 text-[#F36D21] rounded-xl flex items-center justify-center">
+                <HelpCircle size={20} />
+              </div>
+              <h3 className="font-black">Resources</h3>
+            </div>
+            <ul className="space-y-4">
+              <li>
+                <a href="#" className="flex items-center justify-between group p-3 hover:bg-gray-50 rounded-xl transition-all">
+                  <span className="text-sm font-bold text-gray-500 group-hover:text-gray-900">Knowledge Base</span>
+                  <ChevronRight size={16} className="text-gray-300 group-hover:text-[#F36D21]" />
+                </a>
+              </li>
+              <li>
+                <a href="mailto:support@qline.com" className="flex items-center justify-between group p-3 hover:bg-gray-50 rounded-xl transition-all">
+                  <span className="text-sm font-bold text-gray-500 group-hover:text-gray-900">Email Support</span>
+                  <ChevronRight size={16} className="text-gray-300 group-hover:text-[#F36D21]" />
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
       </main>

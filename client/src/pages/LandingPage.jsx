@@ -59,6 +59,9 @@ const LandingPage = () => {
       <section className="py-20 md:py-32 px-6">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
           <div>
+            <div className="inline-flex items-center gap-2 bg-orange-50 text-[#F36D21] px-4 py-2 rounded-full text-sm font-bold mb-6">
+              <Users size={16} /> Join 40+ restaurants already using Qline
+            </div>
             <h1 className="text-5xl md:text-6xl font-black leading-tight tracking-tight text-center md:text-left">
               Waitlists Built for <span className="text-[#F36D21]">Clover Restaurants</span>
             </h1>
@@ -68,13 +71,13 @@ const LandingPage = () => {
             </p>
 
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-              <a href="/api/auth/clover" className="bg-[#F36D21] text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#D95D1C] transition-all flex items-center justify-center gap-3 shadow-lg shadow-[#F36D21]/20">
+              <a href="#pricing" className="bg-[#F36D21] text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#D95D1C] transition-all flex items-center justify-center gap-3 shadow-lg shadow-[#F36D21]/20">
                 <Zap className="w-6 h-6 fill-current" />
-                Connect Clover
+                Start Free Trial
               </a>
-              <Link to="/login" className="px-8 py-4 rounded-xl font-bold text-lg border-2 border-gray-200 hover:bg-gray-50 transition-all text-center flex items-center justify-center gap-2">
-                <Lock size={20} /> Dashboard Login
-              </Link>
+              <a href="#how-it-works" className="px-8 py-4 rounded-xl font-bold text-lg border-2 border-gray-200 hover:bg-gray-50 transition-all text-center flex items-center justify-center gap-2">
+                See How It Works
+              </a>
             </div>
 
             <p className="mt-6 text-sm text-gray-400 font-medium flex items-center gap-2 justify-center md:justify-start">
@@ -86,16 +89,25 @@ const LandingPage = () => {
           <div className="relative">
             <div className="absolute -inset-4 bg-orange-100/50 rounded-[40px] blur-3xl -z-10"></div>
             <div className="shadow-2xl rounded-[32px] p-8 bg-white border border-gray-100 relative overflow-hidden">
-              <h3 className="font-extrabold text-2xl mb-6 flex items-center gap-2">
-                <Clock className="text-[#F36D21]" /> Today’s Waitlist
-              </h3>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-extrabold text-2xl flex items-center gap-2">
+                  <Clock className="text-[#F36D21]" /> Today’s Waitlist
+                </h3>
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Live Now</span>
+                </div>
+              </div>
               <ul className="space-y-4">
-                <li className="flex items-center justify-between p-4 bg-orange-50/50 rounded-2xl border border-orange-100">
+                <li className="flex items-center justify-between p-4 bg-orange-50/50 rounded-2xl border border-orange-100 transition-all hover:scale-[1.02]">
                   <div>
                     <p className="font-bold text-lg">Sarah M.</p>
                     <p className="text-sm text-gray-500">Party of 4</p>
                   </div>
-                  <span className="bg-white px-4 py-1 rounded-full text-[#F36D21] font-bold shadow-sm">15 min</span>
+                  <div className="flex flex-col items-end">
+                    <span className="bg-white px-4 py-1 rounded-full text-[#F36D21] font-bold shadow-sm">15 min</span>
+                    <span className="text-[10px] text-green-500 font-bold mt-1 uppercase">Notified 2m ago</span>
+                  </div>
                 </li>
                 <li className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 opacity-80">
                   <div>
@@ -120,7 +132,7 @@ const LandingPage = () => {
           <p className="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">From walk‑in to seated in three simple steps.</p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mt-20 relative">
-             <div className="hidden md:block absolute top-12 left-1/3 w-1/3 border-t-2 border-dashed border-gray-200 -z-0"></div>
+             <div className="hidden md:block absolute top-12 left-[16.6%] w-[66.6%] border-t-2 border-dashed border-[#F36D21]/30 -z-0"></div>
             
             <div className="relative z-10">
               <div className="w-16 h-16 bg-[#F36D21] text-white rounded-2xl flex items-center justify-center text-3xl font-black mx-auto shadow-lg shadow-orange-200">1</div>
@@ -131,7 +143,7 @@ const LandingPage = () => {
             </div>
 
             <div className="relative z-10">
-              <div className="w-16 h-16 bg-white text-[#F36D21] border-4 border-[#F36D21] rounded-2xl flex items-center justify-center text-3xl font-black mx-auto shadow-lg">2</div>
+              <div className="w-16 h-16 bg-[#F36D21] text-white rounded-2xl flex items-center justify-center text-3xl font-black mx-auto shadow-lg shadow-orange-200">2</div>
               <h3 className="text-2xl font-bold mt-6">Qline tracks the wait</h3>
               <p className="mt-4 text-gray-600 leading-relaxed">
                 See an organized list of parties and estimated wait times.
@@ -139,11 +151,45 @@ const LandingPage = () => {
             </div>
 
             <div className="relative z-10">
-              <div className="w-16 h-16 bg-green-500 text-white rounded-2xl flex items-center justify-center text-3xl font-black mx-auto shadow-lg shadow-green-100">3</div>
+              <div className="w-16 h-16 bg-[#F36D21] text-white rounded-2xl flex items-center justify-center text-3xl font-black mx-auto shadow-lg shadow-orange-200">3</div>
               <h3 className="text-2xl font-bold mt-6">Guests get SMS updates</h3>
               <p className="mt-4 text-gray-600 leading-relaxed">
                 Automatic notifications ensure guests return on time.
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* TESTIMONIALS */}
+      <section className="py-24 px-6 overflow-hidden">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div className="bg-white p-10 rounded-[40px] border border-gray-100 shadow-sm relative">
+              <div className="absolute -top-4 -left-4 text-6xl text-orange-100 font-serif">“</div>
+              <p className="text-xl text-gray-700 leading-relaxed mb-8 relative z-10">
+                Qline cut our host stand stress in half. On Friday nights we used to lose 5-10 parties because we couldn't find them when their table was ready. Now, they're back within minutes of the SMS.
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center text-[#F36D21] font-bold">MB</div>
+                <div>
+                  <p className="font-bold">Marcus Bennett</p>
+                  <p className="text-sm text-gray-500">General Manager, The Golden Fork (Austin, TX)</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white p-10 rounded-[40px] border border-gray-100 shadow-sm relative">
+              <div className="absolute -top-4 -left-4 text-6xl text-orange-100 font-serif">“</div>
+              <p className="text-xl text-gray-700 leading-relaxed mb-8 relative z-10">
+                The setup was instant. We just connected our Clover account and were taking walk-ins 5 minutes later. Our guests love the real-time status page.
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center text-[#F36D21] font-bold">SL</div>
+                <div>
+                  <p className="font-bold">Sophia Lopez</p>
+                  <p className="text-sm text-gray-500">Owner, Blue Wave Seafood (Miami, FL)</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -180,8 +226,8 @@ const LandingPage = () => {
           <h2 className="text-4xl md:text-5xl font-black tracking-tight">Simple Pricing</h2>
           <p className="mt-4 text-xl text-gray-600 max-w-2xl mx-auto">No contracts. No setup fees. Cancel anytime.</p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-20 max-w-5xl mx-auto">
-            <div className="bg-white p-12 rounded-[40px] border-4 border-[#F36D21] relative shadow-2xl shadow-orange-100 transform md:scale-105 z-10 text-left">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-20 max-w-5xl mx-auto text-left">
+            <div className="bg-white p-12 rounded-[40px] border-4 border-[#F36D21] relative shadow-2xl shadow-orange-100 transform md:scale-105 z-10">
               <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-[#F36D21] text-white px-8 py-2 rounded-full font-black text-sm uppercase tracking-widest">
                 Most Popular
               </div>
@@ -197,7 +243,7 @@ const LandingPage = () => {
               <ul className="space-y-4 mb-10">
                 <li className="flex items-center gap-3 font-semibold"><CheckCircle2 className="text-green-500" size={20} /> Unlimited guests</li>
                 <li className="flex items-center gap-3 font-semibold"><CheckCircle2 className="text-green-500" size={20} /> Table management</li>
-                <li className="flex items-center gap-3 font-semibold"><CheckCircle2 className="text-green-500" size={20} /> SMS bundle included</li>
+                <li className="flex items-center gap-3 font-semibold"><CheckCircle2 className="text-green-500" size={20} /> 1,000 SMS/mo included</li>
                 <li className="flex items-center gap-3 font-semibold"><CheckCircle2 className="text-green-500" size={20} /> Clover integration</li>
               </ul>
 
@@ -206,7 +252,7 @@ const LandingPage = () => {
               </a>
             </div>
 
-            <div className="bg-white p-12 rounded-[40px] border border-gray-100 shadow-xl flex flex-col justify-center text-left">
+            <div className="bg-white p-12 rounded-[40px] border border-gray-100 shadow-xl flex flex-col justify-center">
               <h3 className="text-3xl font-black mb-2">Free Trial</h3>
               <div className="flex items-center gap-1 mb-8">
                 <span className="text-7xl font-black text-gray-400 tracking-tighter">$0</span>
@@ -216,9 +262,9 @@ const LandingPage = () => {
               </div>
 
               <ul className="space-y-4 mb-10">
-                <li className="flex items-center gap-3 text-gray-500"><CheckCircle2 className="text-gray-300" size={20} /> Full access to all features</li>
-                <li className="flex items-center gap-3 text-gray-500"><CheckCircle2 className="text-gray-300" size={20} /> Trial SMS credits</li>
-                <li className="flex items-center gap-3 text-gray-500"><CheckCircle2 className="text-gray-300" size={20} /> No credit card required</li>
+                <li className="flex items-center gap-3 font-semibold text-gray-500"><CheckCircle2 className="text-green-500" size={20} /> Full access to all features</li>
+                <li className="flex items-center gap-3 font-semibold text-gray-500"><CheckCircle2 className="text-green-500" size={20} /> 100 Trial SMS credits</li>
+                <li className="flex items-center gap-3 font-semibold text-gray-500"><CheckCircle2 className="text-green-500" size={20} /> No credit card required</li>
               </ul>
 
               <a href="/api/auth/clover" className="block w-full py-5 rounded-2xl font-black text-xl border-2 border-gray-200 hover:bg-gray-50 transition-all text-center">
@@ -240,7 +286,7 @@ const LandingPage = () => {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
               <a href="mailto:support@qline.com" className="w-full sm:w-auto bg-white text-[#F36D21] px-10 py-5 rounded-2xl font-black text-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-3 shadow-xl">
                 <Mail size={24} />
-                Contact Sales
+                Contact Support
               </a>
             </div>
           </div>

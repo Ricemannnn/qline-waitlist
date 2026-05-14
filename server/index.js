@@ -19,12 +19,17 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+const BASE_URL = process.env.BASE_URL || (process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` : `http://localhost:${PORT}`);
 
-// SECURITY: Hardcoded JWT secret fallback check
-if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
-  console.error('FATAL ERROR: JWT_SECRET is not defined in environment variables.');
-  process.exit(1);
+// SECURITY: Configuration checks
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.JWT_SECRET) {
+    console.error('FATAL ERROR: JWT_SECRET is not defined in environment variables.');
+    process.exit(1);
+  }
+  if (!process.env.BASE_URL && !process.env.REPL_SLUG) {
+    console.warn('WARNING: BASE_URL is not defined. Clover OAuth may fail if redirect URI is incorrect.');
+  }
 }
 const JWT_SECRET = process.env.JWT_SECRET || 'qline-dev-secret-key-change-this';
 
