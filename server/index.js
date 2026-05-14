@@ -22,8 +22,26 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const BASE_URL = process.env.BASE_URL || (process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` : `http://localhost:${PORT}`);
 
+const distPath = path.join(__dirname, '../client/dist');
+
+// Static files from the React app - moved to the top
+app.use(express.static(distPath));
+
 // SECURITY: Configuration checks
 if (process.env.NODE_ENV === 'production') {
+  console.log('Production mode detected.');
+  console.log('Serving static files from:', distPath);
+  if (!fs.existsSync(distPath)) {
+    console.error('CRITICAL: dist directory does not exist at', distPath);
+  } else {
+    const assetsPath = path.join(distPath, 'assets');
+    if (fs.existsSync(assetsPath)) {
+      console.log('Assets directory found at', assetsPath);
+      console.log('Assets files:', fs.readdirSync(assetsPath));
+    } else {
+      console.warn('WARNING: assets directory not found inside dist.');
+    }
+  }
   if (!process.env.JWT_SECRET) {
     console.warn('-------------------------------------------------------------------');
     console.warn('WARNING: JWT_SECRET is not defined. Using a temporary insecure secret.');
@@ -59,9 +77,6 @@ const authLimiter = rateLimit({
   max: 10, // limit each IP to 10 requests per windowMs
   message: { error: 'Too many attempts, please try again after 15 minutes' }
 });
-
-// Static files from the React app
-app.use(express.static(path.join(__dirname, '../client/dist')));
 
 // --- Auth Middleware ---
 const authenticateToken = (req, res, next) => {
