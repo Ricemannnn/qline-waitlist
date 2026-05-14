@@ -24,6 +24,9 @@ const BASE_URL = process.env.BASE_URL || (process.env.REPL_SLUG ? `https://${pro
 
 const distPath = path.join(__dirname, '../client/dist');
 
+// Static files from the React app - serve these before CORS/middleware
+app.use(express.static(distPath));
+
 // SECURITY: Configuration checks
 if (process.env.NODE_ENV === 'production') {
   console.log('Production mode detected.');
@@ -532,9 +535,6 @@ app.patch('/api/reservations/status/:id', authenticateToken, (req, res) => {
   db.prepare('UPDATE reservations SET status = ? WHERE id = ?').run(status, id);
   res.json({ success: true });
 });
-
-// Static files from the React app
-app.use(express.static(distPath));
 
 // Catch-all
 app.get('*', (req, res) => {
