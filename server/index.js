@@ -24,9 +24,6 @@ const BASE_URL = process.env.BASE_URL || (process.env.REPL_SLUG ? `https://${pro
 
 const distPath = path.join(__dirname, '../client/dist');
 
-// Static files from the React app - moved to the top
-app.use(express.static(distPath));
-
 // SECURITY: Configuration checks
 if (process.env.NODE_ENV === 'production') {
   console.log('Production mode detected.');
@@ -111,28 +108,36 @@ app.get('/api/health', (req, res) => {
 
 // DEBUG: List dist files
 app.get('/api/debug-dist', (req, res) => {
-  const distPath = path.join(__dirname, '../client/dist');
+  const paths = {
+    dirname: __dirname,
+    cwd: process.cwd(),
+    distDirname: path.join(__dirname, '../client/dist'),
+    distCwd: path.join(process.cwd(), 'client/dist')
+  };
+  
+  const distPath = fs.existsSync(paths.distDirname) ? paths.distDirname : paths.distCwd;
+  
   try {
     const files = [];
-    const scan = (dir) => {
-      const list = fs.readdirSync(dir);
-      list.forEach(file => {
-        const fullPath = path.join(dir, file);
-        if (fs.statSync(fullPath).isDirectory()) {
-          scan(fullPath);
-        } else {
-          files.push(path.relative(distPath, fullPath));
-        }
-      });
-    };
     if (fs.existsSync(distPath)) {
+      const scan = (dir) => {
+        const list = fs.readdirSync(dir);
+        list.forEach(file => {
+          const fullPath = path.join(dir, file);
+          if (fs.statSync(fullPath).isDirectory()) {
+            scan(fullPath);
+          } else {
+            files.push(path.relative(distPath, fullPath));
+          }
+        });
+      };
       scan(distPath);
-      res.json({ exists: true, path: distPath, files });
+      res.json({ exists: true, distPath, paths, files });
     } else {
-      res.json({ exists: false, path: distPath });
+      res.json({ exists: false, distPath, paths });
     }
   } catch (err) {
-    res.json({ error: err.message, path: distPath });
+    res.json({ error: err.message, distPath, paths });
   }
 });
 
@@ -540,9 +545,12 @@ app.patch('/api/reservations/status/:id', authenticateToken, (req, res) => {
   res.json({ success: true });
 });
 
+// Static files from the React app
+app.use(express.static(distPath));
+
 // Catch-all
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+  res.sendFile(path.join(distPath, 'index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
