@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
-import { Users, Calendar, Settings, Plus, Bell, Check, X, Search, QrCode, Send, Zap, BarChart3 } from 'lucide-react';
-import { getWaitlist, updateWaitlistStatus, notifyGuest, getReservations, getCloverStatus, getSettings, updateSettings, addReservation, updateReservationStatus } from '../api';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
+import { Users, Calendar, Settings, Plus, Bell, Check, X, Search, QrCode, Send, Zap, BarChart3, LogOut } from 'lucide-react';
+import { 
+  getWaitlist, updateWaitlistStatus, notifyGuest, getReservations, 
+  getCloverStatus, getSettings, updateSettings, addReservation, 
+  updateReservationStatus, getMe 
+} from '../api';
 
 const HostDashboard = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('waitlist');
   const [waitlist, setWaitlist] = useState({ entries: [], summary: { total_waiting: 0, next_estimated_wait: 0 } });
   const [reservations, setReservations] = useState([]);
@@ -12,19 +17,37 @@ const HostDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [merchantName, setMerchantName] = useState('The Golden Fork');
+  const [currentMerchantId, setCurrentMerchantId] = useState(null);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   
-  // New reservation form state
   const [showResModal, setShowResModal] = useState(false);
   const [newRes, setNewRes] = useState({ guest_name: '', party_size: 2, phone_number: '', reservation_time: '' });
   
-  const merchantId = searchParams.get('merchantId');
+  const urlMerchantId = searchParams.get('merchantId');
 
   const checkAuth = async () => {
-    if (!merchantId) {
-      // For demo purposes on local/replit, we allow demo-1
+    // 1. Check for Regular Password Login (JWT)
+    const token = localStorage.getItem('qline_token');
+    if (token) {
+      try {
+        const response = await getMe();
+        setIsAuthenticated(true);
+        setMerchantName(response.data.restaurant_name);
+        setCurrentMerchantId(response.data.restaurant_id);
+        setLoading(false);
+        return;
+      } catch (err) {
+        console.log('JWT expired or invalid, trying Clover...');
+        localStorage.removeItem('qline_token');
+      }
+    }
+
+    // 2. Check for Clover OAuth Flow
+    if (!urlMerchantId) {
+      // Demo fallback
       if (window.location.hostname === 'localhost' || window.location.hostname.includes('replit')) {
         setIsAuthenticated(true);
+        setCurrentMerchantId('demo-1');
         setLoading(false);
         return;
       }
@@ -34,10 +57,11 @@ const HostDashboard = () => {
     }
 
     try {
-      const response = await getCloverStatus(merchantId);
+      const response = await getCloverStatus(urlMerchantId);
       if (response.data.connected) {
         setIsAuthenticated(true);
         setMerchantName(response.data.merchantName);
+        setCurrentMerchantId(urlMerchantId);
       } else {
         setIsAuthenticated(false);
       }
@@ -49,9 +73,17 @@ const HostDashboard = () => {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('qline_token');
+    localStorage.removeItem('qline_merchant_id');
+    navigate('/');
+    window.location.reload();
+  };
+
   const fetchWaitlist = async () => {
+    if (!currentMerchantId) return;
     try {
-      const response = await getWaitlist(merchantId || 'demo-1');
+      const response = await getWaitlist(currentMerchantId);
       setWaitlist(response.data);
     } catch (err) {
       console.error('Failed to fetch waitlist:', err);
@@ -59,8 +91,9 @@ const HostDashboard = () => {
   };
 
   const fetchReservations = async () => {
+    if (!currentMerchantId) return;
     try {
-      const response = await getReservations(merchantId || 'demo-1');
+      const response = await getReservations(currentMerchantId);
       setReservations(response.data);
     } catch (err) {
       console.error('Failed to fetch reservations:', err);
@@ -68,8 +101,9 @@ const HostDashboard = () => {
   };
 
   const fetchSettings = async () => {
+    if (!currentMerchantId) return;
     try {
-      const response = await getSettings(merchantId || 'demo-1');
+      const response = await getSettings(currentMerchantId);
       setSettings(response.data);
     } catch (err) {
       console.error('Failed to fetch settings:', err);
@@ -79,7 +113,7 @@ const HostDashboard = () => {
   const handleSaveSettings = async () => {
     setIsSavingSettings(true);
     try {
-      await updateSettings(merchantId || 'demo-1', settings);
+      await updateSettings(currentMerchantId, settings);
       alert('Settings saved successfully!');
     } catch (err) {
       console.error('Failed to save settings:', err);
@@ -91,20 +125,20 @@ const HostDashboard = () => {
 
   useEffect(() => {
     checkAuth();
-  }, [merchantId]);
+  }, [urlMerchantId]);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && currentMerchantId) {
       fetchWaitlist();
       fetchReservations();
       fetchSettings();
       const interval = setInterval(() => {
         fetchWaitlist();
         fetchReservations();
-      }, 5000); // Poll every 5 seconds
+      }, 5000);
       return () => clearInterval(interval);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, currentMerchantId]);
 
   const handleStatusChange = async (id, status) => {
     try {
@@ -127,7 +161,7 @@ const HostDashboard = () => {
   const handleAddReservation = async (e) => {
     e.preventDefault();
     try {
-      await addReservation(merchantId || 'demo-1', newRes);
+      await addReservation(currentMerchantId, newRes);
       setShowResModal(false);
       setNewRes({ guest_name: '', party_size: 2, phone_number: '', reservation_time: '' });
       fetchReservations();
@@ -139,7 +173,7 @@ const HostDashboard = () => {
 
   const handleNotify = async (id) => {
     try {
-      await notifyGuest(merchantId || 'demo-1', id);
+      await notifyGuest(currentMerchantId, id);
       alert('Notification sent!');
       fetchWaitlist();
     } catch (err) {
@@ -159,7 +193,6 @@ const HostDashboard = () => {
         </button>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
           <p className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Total Waiting</p>
@@ -179,7 +212,6 @@ const HostDashboard = () => {
         </div>
       </div>
 
-      {/* Active Queue */}
       <div className="flex-1 bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
           <h2 className="font-bold">Active Queue</h2>
@@ -196,9 +228,7 @@ const HostDashboard = () => {
         </div>
         
         <div className="flex-1 overflow-y-auto p-4">
-          {loading ? (
-            <div className="flex items-center justify-center h-full text-gray-400">Loading...</div>
-          ) : !waitlist.entries || waitlist.entries.length === 0 ? (
+          {!waitlist.entries || waitlist.entries.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-400 text-center p-8">
               <Users className="w-12 h-12 mb-4 opacity-20" />
               <p className="font-medium">The queue is currently empty</p>
@@ -316,7 +346,6 @@ const HostDashboard = () => {
         </div>
       </div>
 
-      {/* Reservation Modal */}
       {showResModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
           <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-md overflow-hidden">
@@ -460,7 +489,15 @@ const HostDashboard = () => {
     </div>
   );
 
-  if (!isAuthenticated && !loading) {
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#FFFDF9] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#F36D21]"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#FFFDF9] flex items-center justify-center p-6">
         <div className="bg-white p-12 rounded-[40px] shadow-xl text-center max-w-lg border border-gray-100">
@@ -469,17 +506,28 @@ const HostDashboard = () => {
           </div>
           <h1 className="text-3xl font-bold mb-4 text-gray-900">Access Restricted</h1>
           <p className="text-gray-500 text-lg mb-10 leading-relaxed">
-            Please log in with your Clover merchant account to manage your restaurant's waitlist and reservations.
+            Please sign in to manage your restaurant's waitlist and reservations.
           </p>
-          <a 
-            href="/api/auth/clover" 
-            className="inline-flex items-center gap-3 bg-[#F36D21] text-white px-10 py-4 rounded-2xl font-bold text-lg hover:bg-[#D95D1C] transition-all shadow-lg shadow-[#F36D21]/20"
-          >
-            <Zap className="w-6 h-6 fill-current" />
-            Login with Clover
-          </a>
+          
+          <div className="flex flex-col gap-4">
+            <Link 
+              to="/login"
+              className="inline-flex items-center justify-center gap-3 bg-[#F36D21] text-white px-10 py-4 rounded-2xl font-bold text-lg hover:bg-[#D95D1C] transition-all shadow-lg shadow-[#F36D21]/20"
+            >
+              Sign In with Password
+            </Link>
+            
+            <a 
+              href="/api/auth/clover" 
+              className="inline-flex items-center justify-center gap-3 bg-white border-2 border-gray-100 text-gray-700 px-10 py-4 rounded-2xl font-bold text-lg hover:bg-gray-50 transition-all"
+            >
+              <Zap className="w-6 h-6 text-[#F36D21] fill-current" />
+              Login with Clover
+            </a>
+          </div>
+
           <div className="mt-8">
-            <Link to="/" className="text-[#F36D21] font-semibold hover:underline">Back to Home</Link>
+            <Link to="/" className="text-gray-400 font-semibold hover:underline">Back to Home</Link>
           </div>
         </div>
       </div>
@@ -524,11 +572,14 @@ const HostDashboard = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          <button className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-all">
-            <Bell className="w-5 h-5" />
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-3 py-2 text-sm font-bold text-gray-500 hover:text-red-500 transition-colors"
+          >
+            <LogOut size={18} /> Logout
           </button>
           <div className="w-10 h-10 bg-[#F36D21] rounded-full flex items-center justify-center text-white font-bold">
-            GF
+            {merchantName.substring(0, 2).toUpperCase()}
           </div>
         </div>
       </nav>
@@ -539,7 +590,6 @@ const HostDashboard = () => {
         {activeTab === 'settings' && renderSettings()}
         {activeTab === 'reports' && renderReports()}
 
-        {/* Right Column: Sidebar */}
         <div className="w-80 flex flex-col gap-6">
           <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
@@ -549,7 +599,7 @@ const HostDashboard = () => {
               <h3 className="font-bold">Guest Join Link</h3>
             </div>
             <p className="text-sm text-gray-500 leading-relaxed mb-6">
-              Display this QR code at the host stand or on table cards so guests can join the waitlist from their phone.
+              Display this QR code at the host stand so guests can join from their phone.
             </p>
             <div className="bg-gray-50 aspect-square rounded-2xl flex items-center justify-center mb-6 border-2 border-dashed border-gray-200">
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
@@ -574,12 +624,12 @@ const HostDashboard = () => {
           </div>
 
           <div className="bg-[#F36D21] p-6 rounded-3xl text-white shadow-xl shadow-[#F36D21]/20">
-            <h3 className="font-bold mb-2">Clover Merchant</h3>
+            <h3 className="font-bold mb-2">Active Restaurant</h3>
             <p className="text-sm text-white/80 mb-6 leading-relaxed">
-              Your restaurant "{merchantName}" is successfully synced with Clover merchant account.
+              Managing: <strong>{merchantName}</strong>
             </p>
             <button className="w-full bg-white text-[#F36D21] py-3 rounded-xl font-bold text-sm hover:bg-white/90 transition-all">
-              Manage Sync
+              Switch Location
             </button>
           </div>
         </div>

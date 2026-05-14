@@ -4,6 +4,8 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import db from './db.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -15,6 +17,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+const JWT_SECRET = process.env.JWT_SECRET || 'qline-super-secret-key';
 
 app.use(cors());
 app.use(express.json());
@@ -23,12 +26,96 @@ app.use(morgan('dev'));
 // Static files from the React app
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
+// --- Auth Middleware ---
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) return res.status(401).json({ error: 'Access denied' });
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ error: 'Invalid token' });
+    req.user = user;
+    next();
+  });
+};
+
 // Basic health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Clover OAuth Routes
+// --- Auth Endpoints ---
+
+// Register (Linked to a restaurant ID)
+app.post('/api/auth/register', async (req, res) => {
+  const { email, password, restaurant_id, name } = req.body;
+
+  if (!email || !password || !restaurant_id) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    // Check if restaurant exists, if not create a placeholder
+    let restaurant = db.prepare('SELECT * FROM restaurants WHERE id = ?').get(restaurant_id);
+    if (!restaurant) {
+      db.prepare('INSERT INTO restaurants (id, name) VALUES (?, ?)').run(restaurant_id, name || 'New Restaurant');
+      db.prepare('INSERT INTO settings (restaurant_id) VALUES (?)').run(restaurant_id);
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const result = db.prepare('INSERT INTO users (email, password_hash, restaurant_id) VALUES (?, ?, ?)')
+      .run(email, hashedPassword, restaurant_id);
+
+    res.status(201).json({ success: true, userId: result.lastInsertRowid });
+  } catch (error) {
+    console.error('Registration Error:', error);
+    if (error.message.includes('UNIQUE constraint failed')) {
+      return res.status(400).json({ error: 'Email already registered' });
+    }
+    res.status(500).json({ error: 'Registration failed' });
+  }
+});
+
+// Login
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = db.prepare('SELECT u.*, r.name as restaurant_name FROM users u JOIN restaurants r ON u.restaurant_id = r.id WHERE u.email = ?').get(email);
+    
+    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, email: user.email, restaurant_id: user.restaurant_id },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        restaurant_id: user.restaurant_id,
+        restaurant_name: user.restaurant_name
+      }
+    });
+  } catch (error) {
+    console.error('Login Error:', error);
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+// Get current user session
+app.get('/api/auth/me', authenticateToken, (req, res) => {
+  const user = db.prepare('SELECT u.id, u.email, u.restaurant_id, r.name as restaurant_name FROM users u JOIN restaurants r ON u.restaurant_id = r.id WHERE u.id = ?').get(req.user.id);
+  res.json(user);
+});
+
+// --- Clover OAuth Routes ---
 app.get('/api/auth/clover', (req, res) => {
   const redirectUri = `${BASE_URL}/api/auth/clover/callback`;
   const url = getCloverOAuthUrl(redirectUri);
@@ -56,37 +143,16 @@ app.get('/api/auth/clover/callback', async (req, res) => {
       db.prepare('UPDATE restaurants SET clover_access_token = ?, name = ? WHERE clover_merchant_id = ?')
         .run(accessToken, merchantInfo.name, merchant_id);
     } else {
-      // For new restaurants, use merchant_id as the internal id if not already used
       db.prepare('INSERT INTO restaurants (id, name, clover_merchant_id, clover_access_token) VALUES (?, ?, ?, ?)')
         .run(merchant_id, merchantInfo.name, merchant_id, accessToken);
         
-      // Initialize default settings for new restaurant
       db.prepare('INSERT INTO settings (restaurant_id, wait_time_per_party) VALUES (?, ?)').run(merchant_id, 10);
     }
 
-    // Redirect to the frontend dashboard or a success page
     res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/host?merchantId=${merchant_id}`);
   } catch (error) {
     console.error('Clover OAuth Error:', error.response?.data || error.message);
     res.status(500).send('Authentication failed');
-  }
-});
-
-// Clover Integration Endpoints
-app.get('/api/clover/tables/:merchantId', async (req, res) => {
-  const { merchantId } = req.params;
-  const restaurant = db.prepare('SELECT * FROM restaurants WHERE clover_merchant_id = ?').get(merchantId);
-
-  if (!restaurant || !restaurant.clover_access_token) {
-    return res.status(401).json({ error: 'Clover access token not found for this merchant' });
-  }
-
-  try {
-    const tables = await getTables(merchantId, restaurant.clover_access_token);
-    res.json(tables);
-  } catch (error) {
-    console.error('Error fetching Clover tables:', error.response?.data || error.message);
-    res.status(500).json({ error: 'Failed to fetch tables from Clover' });
   }
 });
 
@@ -102,23 +168,31 @@ app.get('/api/auth/clover/status/:merchantId', (req, res) => {
   }
 });
 
-// Seed demo restaurant if not exists
-const seedDemo = () => {
+// Seed demo data
+const seedDemo = async () => {
   const demoId = 'demo-1';
   const row = db.prepare('SELECT * FROM restaurants WHERE id = ?').get(demoId);
   if (!row) {
     db.prepare('INSERT INTO restaurants (id, name) VALUES (?, ?)').run(demoId, 'The Golden Fork');
-    console.log('Demo restaurant seeded.');
   }
   
-  // Seed default settings for demo
   const settings = db.prepare('SELECT * FROM settings WHERE restaurant_id = ?').get(demoId);
   if (!settings) {
     db.prepare('INSERT INTO settings (restaurant_id, wait_time_per_party) VALUES (?, ?)').run(demoId, 10);
-    console.log('Demo settings seeded.');
+  }
+
+  // Add a demo user for password login
+  const demoEmail = 'admin@goldenfork.com';
+  const existingUser = db.prepare('SELECT * FROM users WHERE email = ?').get(demoEmail);
+  if (!existingUser) {
+    const hashedPass = await bcrypt.hash('password123', 10);
+    db.prepare('INSERT INTO users (email, password_hash, restaurant_id) VALUES (?, ?, ?)').run(demoEmail, hashedPass, demoId);
+    console.log('Demo user seeded: admin@goldenfork.com / password123');
   }
 };
 seedDemo();
+
+// --- Main App Endpoints ---
 
 // Settings API
 app.get('/api/settings/:restaurantId', (req, res) => {
@@ -126,7 +200,6 @@ app.get('/api/settings/:restaurantId', (req, res) => {
   let settings = db.prepare('SELECT * FROM settings WHERE restaurant_id = ?').get(restaurantId);
   
   if (!settings) {
-    // Return defaults if not found
     settings = {
       restaurant_id: restaurantId,
       wait_time_per_party: 10,
@@ -193,7 +266,7 @@ app.post('/api/waitlist/:restaurantId/join', (req, res) => {
 
 app.patch('/api/waitlist/status/:id', (req, res) => {
   const { id } = req.params;
-  const { status } = req.body; // seated, cancelled, notified
+  const { status } = req.body;
 
   db.prepare('UPDATE waitlist SET status = ? WHERE id = ?').run(status, id);
   res.json({ success: true });
@@ -240,7 +313,6 @@ app.post('/api/waitlist/:restaurantId/notify/:id', async (req, res) => {
   }
 
   try {
-    // Get settings for custom SMS template
     const restaurant = db.prepare('SELECT name FROM restaurants WHERE id = ?').get(restaurantId);
     const settings = db.prepare('SELECT sms_template FROM settings WHERE restaurant_id = ?').get(restaurantId);
     
@@ -281,13 +353,13 @@ app.post('/api/reservations/:restaurantId', (req, res) => {
 
 app.patch('/api/reservations/status/:id', (req, res) => {
   const { id } = req.params;
-  const { status } = req.body; // confirmed, seated, cancelled, no-show
+  const { status } = req.body;
 
   db.prepare('UPDATE reservations SET status = ? WHERE id = ?').run(status, id);
   res.json({ success: true });
 });
 
-// All other GET requests not handled before will return our React app
+// Catch-all to serve React app
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });

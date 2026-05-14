@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Calendar, BarChart3, ChevronRight, Store, Zap, CheckCircle2, MessageSquare, Clock, Smartphone, ShieldCheck, HelpCircle, Mail } from 'lucide-react';
-import heroImage from '../assets/hero.png';
+import { Users, Calendar, BarChart3, ChevronRight, Store, Zap, CheckCircle2, MessageSquare, Clock, Smartphone, ShieldCheck, HelpCircle, Mail, Lock } from 'lucide-react';
 
 const LandingPage = () => {
   return (
@@ -18,9 +17,12 @@ const LandingPage = () => {
           <a href="#how-it-works" className="text-sm font-medium hover:text-[#F36D21] transition-colors">How it Works</a>
           <a href="#features" className="text-sm font-medium hover:text-[#F36D21] transition-colors">Features</a>
           <a href="#pricing" className="text-sm font-medium hover:text-[#F36D21] transition-colors">Pricing</a>
+          <Link to="/login" className="text-sm font-bold text-gray-500 hover:text-[#F36D21] transition-colors flex items-center gap-1">
+            <Lock size={14} /> Host Login
+          </Link>
           <a href="/api/auth/clover" className="bg-[#F36D21] text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-[#D95D1C] transition-all flex items-center gap-2 shadow-sm">
-            <Store className="w-4 h-4" />
-            Login with Clover
+            <Zap className="w-4 h-4 fill-current" />
+            Clover Connect
           </a>
         </nav>
       </header>
@@ -40,16 +42,16 @@ const LandingPage = () => {
             <div className="mt-10 flex flex-col sm:flex-row gap-4">
               <a href="/api/auth/clover" className="bg-[#F36D21] text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#D95D1C] transition-all flex items-center justify-center gap-3 shadow-lg shadow-[#F36D21]/20">
                 <Zap className="w-6 h-6 fill-current" />
-                Login with Clover
+                Connect Clover
               </a>
-              <a href="#contact" className="px-8 py-4 rounded-xl font-bold text-lg border-2 border-gray-200 hover:bg-gray-50 transition-all text-center flex items-center justify-center">
-                Book a Demo
-              </a>
+              <Link to="/login" className="px-8 py-4 rounded-xl font-bold text-lg border-2 border-gray-200 hover:bg-gray-50 transition-all text-center flex items-center justify-center gap-2">
+                <Lock size={20} /> Dashboard Login
+              </Link>
             </div>
 
             <p className="mt-6 text-sm text-gray-400 font-medium flex items-center gap-2 justify-center md:justify-start">
               <CheckCircle2 size={16} className="text-green-500" />
-              Works with Clover Station, Mini, and Flex.
+              Works on any PC, iPad, or Clover device.
             </p>
           </div>
 
@@ -140,9 +142,9 @@ const LandingPage = () => {
             {[
               { title: "Unified waitlist & reservations", desc: "Manage walk‑ins and reservations in one place.", icon: <Calendar className="w-6 h-6" color="#F36D21"/> },
               { title: "Smart SMS notifications", desc: "Automatically notify guests when they’re almost up or when their table is ready.", icon: <MessageSquare className="w-6 h-6" color="#F36D21"/> },
-              { title: "Clover‑native workflow", desc: "Seamless login and integration with Clover devices.", icon: <Zap className="w-6 h-6" color="#F36D21"/> },
+              { title: "Clover & Web access", desc: "Seamless login via Clover or email/password on any device.", icon: <Lock className="w-6 h-6" color="#F36D21"/> },
               { title: "Analytics & table turns", desc: "Track wait times, no‑shows, and table efficiency.", icon: <BarChart3 className="w-6 h-6" color="#F36D21"/> },
-              { title: "Multi‑device friendly", desc: "Works on Clover Station, tablets, laptops, and phones.", icon: <Smartphone className="w-6 h-6" color="#F36D21"/> },
+              { title: "Multi‑device friendly", desc: "Works on Clover Station, iPads, tablets, and laptops.", icon: <Smartphone className="w-6 h-6" color="#F36D21"/> },
               { title: "Simple, predictable pricing", desc: "One flat monthly price with generous SMS limits.", icon: <CheckCircle2 className="w-6 h-6" color="#F36D21"/> },
             ].map((f, i) => (
               <div key={i} className="p-10 bg-[#FFFDF9] rounded-3xl border border-gray-100 hover:shadow-xl hover:shadow-gray-100 transition-all text-left">
@@ -180,8 +182,8 @@ const LandingPage = () => {
                 <li className="flex items-center gap-3 font-semibold"><CheckCircle2 className="text-green-500" size={20} /> Unlimited waitlist guests</li>
                 <li className="flex items-center gap-3 font-semibold"><CheckCircle2 className="text-green-500" size={20} /> Unlimited reservations</li>
                 <li className="flex items-center gap-3 font-semibold"><CheckCircle2 className="text-green-500" size={20} /> Includes monthly SMS bundle</li>
+                <li className="flex items-center gap-3 font-semibold"><CheckCircle2 className="text-green-500" size={20} /> Multi-device password login</li>
                 <li className="flex items-center gap-3 font-semibold"><CheckCircle2 className="text-green-500" size={20} /> Clover login & integration</li>
-                <li className="flex items-center gap-3 font-semibold"><CheckCircle2 className="text-green-500" size={20} /> Email & chat support</li>
               </ul>
 
               <a href="/api/auth/clover" className="block w-full bg-[#F36D21] text-white py-5 rounded-2xl font-black text-xl hover:bg-[#D95D1C] transition-all shadow-lg shadow-orange-200">
@@ -274,7 +276,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* FOOTER REDESIGN */}
+      {/* FOOTER */}
       <footer className="py-20 bg-gray-900 text-gray-400 px-6">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-16">
           <div className="md:col-span-1">
@@ -284,7 +286,7 @@ const LandingPage = () => {
               </div>
               <span className="text-xl font-bold tracking-tight text-white">Qline</span>
             </div>
-            <p className="leading-relaxed">
+            <p className="leading-relaxed text-sm">
               Waitlists and reservations built for Clover restaurants. Keep guests informed, hosts calm, and tables turning.
             </p>
           </div>
@@ -308,10 +310,10 @@ const LandingPage = () => {
           </div>
 
           <div>
-            <h4 className="text-white font-bold mb-6 flex items-center gap-2 underline decoration-[#F36D21] underline-offset-8">Get Started</h4>
+            <h4 className="text-white font-bold mb-6 flex items-center gap-2 underline decoration-[#F36D21] underline-offset-8">Login</h4>
             <ul className="space-y-4">
-              <li><a href="/api/auth/clover" className="text-[#F36D21] font-bold flex items-center gap-1 group">Login with Clover <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" /></a></li>
-              <li><a href="#contact" className="hover:text-white transition-colors">Book a Demo</a></li>
+              <li><Link to="/login" className="text-[#F36D21] font-bold flex items-center gap-1 group">Dashboard Login <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" /></Link></li>
+              <li><a href="/api/auth/clover" className="hover:text-white transition-colors">Connect Clover</a></li>
               <li><a href="mailto:sales@qline.com" className="hover:text-white transition-colors">Contact Sales</a></li>
             </ul>
           </div>
