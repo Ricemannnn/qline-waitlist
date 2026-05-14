@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  Users, Calendar, BarChart3, ChevronRight, Zap, CheckCircle2, 
+  Users, Calendar, ChevronRight, Zap, CheckCircle2, 
   MessageSquare, Clock, Smartphone, ShieldCheck, HelpCircle, Mail, Lock, Menu, X 
 } from 'lucide-react';
 

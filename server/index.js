@@ -25,7 +25,13 @@ const BASE_URL = process.env.BASE_URL || (process.env.REPL_SLUG ? `https://${pro
 const distPath = path.join(__dirname, '../client/dist');
 
 // Static files from the React app - serve these before CORS/middleware
-app.use(express.static(distPath));
+app.use(express.static(distPath, {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    }
+  }
+}));
 
 // SECURITY: Configuration checks
 if (process.env.NODE_ENV === 'production') {
@@ -536,8 +542,14 @@ app.patch('/api/reservations/status/:id', authenticateToken, (req, res) => {
   res.json({ success: true });
 });
 
-// Catch-all
+// Catch-all - serve index.html for client-side routing
 app.get('*', (req, res) => {
+  // If requesting a file (with extension) that wasn't found in static, return 404
+  if (req.path.includes('.') && !req.path.endsWith('.html')) {
+    return res.status(404).send('Not found');
+  }
+  
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.sendFile(path.join(distPath, 'index.html'));
 });
 
