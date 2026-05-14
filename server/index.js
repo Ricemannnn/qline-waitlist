@@ -3,6 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -91,6 +92,33 @@ const validate = (validations) => {
 // Basic health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
+});
+
+// DEBUG: List dist files
+app.get('/api/debug-dist', (req, res) => {
+  const distPath = path.join(__dirname, '../client/dist');
+  try {
+    const files = [];
+    const scan = (dir) => {
+      const list = fs.readdirSync(dir);
+      list.forEach(file => {
+        const fullPath = path.join(dir, file);
+        if (fs.statSync(fullPath).isDirectory()) {
+          scan(fullPath);
+        } else {
+          files.push(path.relative(distPath, fullPath));
+        }
+      });
+    };
+    if (fs.existsSync(distPath)) {
+      scan(distPath);
+      res.json({ exists: true, path: distPath, files });
+    } else {
+      res.json({ exists: false, path: distPath });
+    }
+  } catch (err) {
+    res.json({ error: err.message, path: distPath });
+  }
 });
 
 // --- Auth Endpoints ---
