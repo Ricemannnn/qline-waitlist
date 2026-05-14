@@ -357,7 +357,7 @@ app.post('/api/waitlist/:restaurantId/notify/:id', async (req, res) => {
     const restaurant = db.prepare('SELECT name FROM restaurants WHERE id = ?').get(restaurantId);
     const settings = db.prepare('SELECT sms_template FROM settings WHERE restaurant_id = ?').get(restaurantId);
     
-    let message = settings ? settings.sms_template : 'Hi {guest_name}, your table at {restaurant_name} is ready!';
+    let message = (settings && settings.sms_template) ? settings.sms_template : 'Hi {guest_name}, your table at {restaurant_name} is ready!';
     message = message.replace('{guest_name}', guest.guest_name);
     message = message.replace('{restaurant_name}', restaurant ? restaurant.name : 'Qline');
 

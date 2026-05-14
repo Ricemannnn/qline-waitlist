@@ -227,10 +227,12 @@ const HostDashboard = () => {
   const handleNotify = async (id) => {
     try {
       await notifyGuest(currentMerchantId, id);
-      alert('Notification sent!');
+      alert('Notification sent successfully!');
       fetchWaitlist();
     } catch (err) {
       console.error('Failed to notify guest:', err);
+      const errorMsg = err.response?.data?.error || 'Failed to send notification. Please check if the guest has a valid phone number and Twilio is configured.';
+      alert(errorMsg);
     }
   };
 
