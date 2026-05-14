@@ -36,6 +36,12 @@ export const updateReservationStatus = (id, status) => api.patch(`/reservations/
 export const getSettings = (restaurantId) => api.get(`/settings/${restaurantId}`);
 export const updateSettings = (restaurantId, data) => api.post(`/settings/${restaurantId}`, data);
 
+// Tables
+export const getTables = (restaurantId) => api.get(`/tables/${restaurantId}`);
+export const addTable = (restaurantId, data) => api.post(`/tables/${restaurantId}`, data);
+export const updateTable = (id, data) => api.patch(`/tables/${id}`, data);
+export const getCloverTables = (merchantId) => api.get(`/clover/tables/${merchantId}`);
+
 // Clover Status
 export const getCloverStatus = (merchantId) => api.get(`/auth/clover/status/${merchantId}`);
 

@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { Users, Calendar, Settings, Plus, Bell, Check, X, Search, QrCode, Send, Zap, BarChart3, LogOut, Phone } from 'lucide-react';
+import { 
+  Users, Calendar, Settings, Plus, Bell, Check, X, Search, 
+  QrCode, Zap, BarChart3, LogOut, Layout, Move
+} from 'lucide-react';
 import { 
   getWaitlist, updateWaitlistStatus, notifyGuest, getReservations, 
   getCloverStatus, getSettings, updateSettings, addReservation, 
-  updateReservationStatus, getMe, joinWaitlist 
+  updateReservationStatus, getMe, joinWaitlist, getTables, addTable, updateTable
 } from '../api';
 
 const HostDashboard = () => {
@@ -13,7 +16,8 @@ const HostDashboard = () => {
   const [activeTab, setActiveTab] = useState('waitlist');
   const [waitlist, setWaitlist] = useState({ entries: [], summary: { total_waiting: 0, next_estimated_wait: 0 } });
   const [reservations, setReservations] = useState([]);
-  const [settings, setSettings] = useState({ wait_time_per_party: 10, sms_template: '' });
+  const [tables, setTables] = useState([]);
+  const [settings, setSettings] = useState({ wait_time_per_party: 10, total_tables: 10, sms_template: '' });
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [merchantName, setMerchantName] = useState('The Golden Fork');
@@ -23,10 +27,12 @@ const HostDashboard = () => {
   // Modals state
   const [showResModal, setShowResModal] = useState(false);
   const [showWaitlistModal, setShowWaitlistModal] = useState(false);
+  const [showTableModal, setShowTableModal] = useState(false);
   
   // Forms state
   const [newRes, setNewRes] = useState({ guest_name: '', party_size: 2, phone_number: '', reservation_time: '' });
   const [newWaitlist, setNewWaitlist] = useState({ guest_name: '', party_size: 2, phone_number: '' });
+  const [newTable, setNewTable] = useState({ name: '', capacity: 4 });
   
   const urlMerchantId = searchParams.get('merchantId');
 
@@ -111,6 +117,16 @@ const HostDashboard = () => {
     }
   };
 
+  const fetchTables = async () => {
+    if (!currentMerchantId) return;
+    try {
+      const response = await getTables(currentMerchantId);
+      setTables(response.data);
+    } catch (err) {
+      console.error('Failed to fetch tables:', err);
+    }
+  };
+
   const handleSaveSettings = async () => {
     setIsSavingSettings(true);
     try {
@@ -133,9 +149,11 @@ const HostDashboard = () => {
       fetchWaitlist();
       fetchReservations();
       fetchSettings();
+      fetchTables();
       const interval = setInterval(() => {
         fetchWaitlist();
         fetchReservations();
+        fetchTables();
       }, 5000);
       return () => clearInterval(interval);
     }
@@ -185,6 +203,27 @@ const HostDashboard = () => {
     }
   };
 
+  const handleAddTable = async (e) => {
+    e.preventDefault();
+    try {
+      await addTable(currentMerchantId, newTable);
+      setShowTableModal(false);
+      setNewTable({ name: '', capacity: 4 });
+      fetchTables();
+    } catch (err) {
+      console.error('Failed to add table:', err);
+    }
+  };
+
+  const handleUpdateTableStatus = async (id, status) => {
+    try {
+      await updateTable(id, { status });
+      fetchTables();
+    } catch (err) {
+      console.error('Failed to update table status:', err);
+    }
+  };
+
   const handleNotify = async (id) => {
     try {
       await notifyGuest(currentMerchantId, id);
@@ -196,6 +235,8 @@ const HostDashboard = () => {
   };
 
   const joinUrl = `${window.location.origin}/join?restaurantId=${currentMerchantId || 'demo-1'}`;
+  
+  const openTablesCount = tables.filter(t => t.status === 'available').length || settings.total_tables;
 
   const renderWaitlist = () => (
     <div className="flex-1 flex flex-col gap-6 overflow-hidden">
@@ -227,7 +268,7 @@ const HostDashboard = () => {
         </div>
         <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
           <p className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Tables Open</p>
-          <p className="text-3xl font-bold text-green-500">4</p>
+          <p className="text-3xl font-bold text-green-500">{openTablesCount}</p>
         </div>
       </div>
 
@@ -297,7 +338,6 @@ const HostDashboard = () => {
         </div>
       </div>
 
-      {/* Add Waitlist Modal */}
       {showWaitlistModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
           <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-md overflow-hidden">
@@ -480,6 +520,102 @@ const HostDashboard = () => {
     </div>
   );
 
+  const renderTableMapping = () => (
+    <div className="flex-1 flex flex-col gap-6 overflow-hidden">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Table Mapping</h1>
+          <p className="text-gray-500 text-sm font-medium">Floor plan and table status</p>
+        </div>
+        <button 
+          onClick={() => setShowTableModal(true)}
+          className="bg-[#F36D21] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-[#D95D1C] transition-all shadow-lg shadow-[#F36D21]/20"
+        >
+          <Plus className="w-5 h-5" /> Add Table
+        </button>
+      </div>
+
+      <div className="flex-1 bg-white rounded-3xl border border-gray-100 shadow-sm p-8 overflow-auto">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+          {tables.length === 0 ? (
+            <div className="col-span-full py-20 text-center text-gray-400">
+              <Layout className="w-12 h-12 mx-auto mb-4 opacity-20" />
+              <p>No tables defined yet.</p>
+              <p className="text-sm">Click 'Add Table' to start building your floor plan.</p>
+            </div>
+          ) : (
+            tables.map(table => (
+              <div 
+                key={table.id}
+                className={`p-6 rounded-[32px] border-2 transition-all cursor-pointer flex flex-col items-center justify-center gap-2 ${
+                  table.status === 'available' ? 'bg-green-50 border-green-100 hover:border-green-300' :
+                  table.status === 'occupied' ? 'bg-orange-50 border-orange-100 hover:border-orange-300' :
+                  'bg-gray-50 border-gray-100 hover:border-gray-300'
+                }`}
+                onClick={() => {
+                  const nextStatus = table.status === 'available' ? 'occupied' : 'available';
+                  handleUpdateTableStatus(table.id, nextStatus);
+                }}
+              >
+                <p className={`font-black text-xl ${
+                  table.status === 'available' ? 'text-green-600' :
+                  table.status === 'occupied' ? 'text-orange-600' : 'text-gray-600'
+                }`}>{table.name}</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Seats {table.capacity}</p>
+                <div className={`mt-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
+                  table.status === 'available' ? 'bg-green-200 text-green-700' :
+                  table.status === 'occupied' ? 'bg-orange-200 text-orange-700' : 'bg-gray-200 text-gray-700'
+                }`}>
+                  {table.status}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {showTableModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
+          <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="text-xl font-bold">Add New Table</h2>
+              <button onClick={() => setShowTableModal(false)} className="p-2 hover:bg-gray-100 rounded-full">
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+            <form onSubmit={handleAddTable} className="p-8 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold mb-1">Table Name/Number</label>
+                <input 
+                  required
+                  type="text" 
+                  value={newTable.name}
+                  onChange={(e) => setNewTable({...newTable, name: e.target.value})}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#F36D21]" 
+                  placeholder="T-1, Window 4, Bar 2..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-1">Capacity</label>
+                <input 
+                  required
+                  type="number" 
+                  min="1"
+                  value={newTable.capacity}
+                  onChange={(e) => setNewTable({...newTable, capacity: parseInt(e.target.value)})}
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#F36D21]" 
+                />
+              </div>
+              <button type="submit" className="w-full bg-[#F36D21] text-white py-3 rounded-xl font-bold mt-4 hover:bg-[#D95D1C] transition-all">
+                Create Table
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   const renderSettings = () => (
     <div className="flex-1 flex flex-col gap-6 overflow-hidden">
       <div className="flex items-center justify-between">
@@ -500,14 +636,25 @@ const HostDashboard = () => {
               className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 outline-none cursor-not-allowed" 
             />
           </div>
-          <div>
-            <label className="block text-sm font-semibold mb-2">Estimated Wait Time Per Party (mins)</label>
-            <input 
-              type="number" 
-              value={settings.wait_time_per_party} 
-              onChange={(e) => setSettings({ ...settings, wait_time_per_party: parseInt(e.target.value) || 0 })}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-[#F36D21]" 
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold mb-2">Wait Time (mins)</label>
+              <input 
+                type="number" 
+                value={settings.wait_time_per_party} 
+                onChange={(e) => setSettings({ ...settings, wait_time_per_party: parseInt(e.target.value) || 0 })}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-[#F36D21]" 
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-2">Total Tables</label>
+              <input 
+                type="number" 
+                value={settings.total_tables} 
+                onChange={(e) => setSettings({ ...settings, total_tables: parseInt(e.target.value) || 0 })}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-[#F36D21]" 
+              />
+            </div>
           </div>
           <div>
             <label className="block text-sm font-semibold mb-2">SMS Message Template</label>
@@ -631,6 +778,12 @@ const HostDashboard = () => {
             <Calendar className="w-4 h-4" /> Reservations
           </button>
           <button 
+            onClick={() => setActiveTab('tables')}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all ${activeTab === 'tables' ? 'bg-[#F36D21]/10 text-[#F36D21]' : 'text-gray-500 hover:bg-gray-100'}`}
+          >
+            <Layout className="w-4 h-4" /> Tables
+          </button>
+          <button 
             onClick={() => setActiveTab('settings')}
             className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all ${activeTab === 'settings' ? 'bg-[#F36D21]/10 text-[#F36D21]' : 'text-gray-500 hover:bg-gray-100'}`}
           >
@@ -660,6 +813,7 @@ const HostDashboard = () => {
       <main className="flex-1 flex gap-6 p-6 overflow-hidden">
         {activeTab === 'waitlist' && renderWaitlist()}
         {activeTab === 'reservations' && renderReservations()}
+        {activeTab === 'tables' && renderTableMapping()}
         {activeTab === 'settings' && renderSettings()}
         {activeTab === 'reports' && renderReports()}
 

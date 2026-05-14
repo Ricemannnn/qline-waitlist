@@ -203,6 +203,7 @@ app.get('/api/settings/:restaurantId', (req, res) => {
     settings = {
       restaurant_id: restaurantId,
       wait_time_per_party: 10,
+      total_tables: 10,
       sms_template: 'Hi {guest_name}, your table at {restaurant_name} is ready!'
     };
   }
@@ -212,18 +213,58 @@ app.get('/api/settings/:restaurantId', (req, res) => {
 
 app.post('/api/settings/:restaurantId', (req, res) => {
   const { restaurantId } = req.params;
-  const { wait_time_per_party, sms_template } = req.body;
+  const { wait_time_per_party, total_tables, sms_template } = req.body;
   
   const existing = db.prepare('SELECT * FROM settings WHERE restaurant_id = ?').get(restaurantId);
   
   if (existing) {
-    db.prepare('UPDATE settings SET wait_time_per_party = ?, sms_template = ?, updated_at = CURRENT_TIMESTAMP WHERE restaurant_id = ?')
-      .run(wait_time_per_party, sms_template, restaurantId);
+    db.prepare('UPDATE settings SET wait_time_per_party = ?, total_tables = ?, sms_template = ?, updated_at = CURRENT_TIMESTAMP WHERE restaurant_id = ?')
+      .run(wait_time_per_party, total_tables || 10, sms_template, restaurantId);
   } else {
-    db.prepare('INSERT INTO settings (restaurant_id, wait_time_per_party, sms_template) VALUES (?, ?, ?)')
-      .run(restaurantId, wait_time_per_party, sms_template);
+    db.prepare('INSERT INTO settings (restaurant_id, wait_time_per_party, total_tables, sms_template) VALUES (?, ?, ?, ?)')
+      .run(restaurantId, wait_time_per_party, total_tables || 10, sms_template);
   }
   
+  res.json({ success: true });
+});
+
+// Tables API
+app.get('/api/tables/:restaurantId', (req, res) => {
+  const { restaurantId } = req.params;
+  const tables = db.prepare('SELECT * FROM tables WHERE restaurant_id = ?').all(restaurantId);
+  res.json(tables);
+});
+
+app.post('/api/tables/:restaurantId', (req, res) => {
+  const { restaurantId } = req.params;
+  const { name, capacity, status, x, y } = req.body;
+  
+  const result = db.prepare('INSERT INTO tables (restaurant_id, name, capacity, status, x, y) VALUES (?, ?, ?, ?, ?, ?)')
+    .run(restaurantId, name, capacity || 4, status || 'available', x || 0, y || 0);
+  
+  res.json({ id: result.lastInsertRowid });
+});
+
+app.patch('/api/tables/:id', (req, res) => {
+  const { id } = req.params;
+  const { status, name, capacity, x, y } = req.body;
+  
+  let query = 'UPDATE tables SET ';
+  const params = [];
+  const updates = [];
+  
+  if (status) { updates.push('status = ?'); params.push(status); }
+  if (name) { updates.push('name = ?'); params.push(name); }
+  if (capacity) { updates.push('capacity = ?'); params.push(capacity); }
+  if (x !== undefined) { updates.push('x = ?'); params.push(x); }
+  if (y !== undefined) { updates.push('y = ?'); params.push(y); }
+  
+  if (updates.length === 0) return res.json({ success: true });
+  
+  query += updates.join(', ') + ' WHERE id = ?';
+  params.push(id);
+  
+  db.prepare(query).run(...params);
   res.json({ success: true });
 });
 

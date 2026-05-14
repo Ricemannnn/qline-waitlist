@@ -53,10 +53,29 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS settings (
     restaurant_id TEXT PRIMARY KEY,
     wait_time_per_party INTEGER DEFAULT 10,
+    total_tables INTEGER DEFAULT 10,
     sms_template TEXT DEFAULT 'Hi {guest_name}, your table at {restaurant_name} is ready!',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (restaurant_id) REFERENCES restaurants (id)
   );
+
+  CREATE TABLE IF NOT EXISTS tables (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    restaurant_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    capacity INTEGER DEFAULT 4,
+    status TEXT DEFAULT 'available', -- available, occupied, reserved
+    x INTEGER DEFAULT 0,
+    y INTEGER DEFAULT 0,
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants (id)
+  );
 `);
+
+// Migration: Add total_tables to settings if it doesn't exist
+try {
+  db.prepare('ALTER TABLE settings ADD COLUMN total_tables INTEGER DEFAULT 10').run();
+} catch (e) {
+  // Column already exists or other error
+}
 
 export default db;
