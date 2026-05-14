@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { Users, Clock, ArrowRight, AlertCircle, MapPin } from 'lucide-react';
+import { Users, Clock, ArrowRight, AlertCircle, MapPin, Sun, Moon } from 'lucide-react';
 import { joinWaitlist, getCloverStatus } from '../api';
 
-const JoinPage = () => {
+const JoinPage = ({ isDarkMode, toggleDarkMode }) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const restaurantId = searchParams.get('restaurantId');
@@ -70,7 +68,7 @@ const JoinPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FFFDF9] flex items-center justify-center">
+      <div className="min-h-screen bg-[#FFFDF9] dark:bg-gray-950 flex items-center justify-center transition-colors">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#F36D21]"></div>
       </div>
     );
@@ -78,13 +76,13 @@ const JoinPage = () => {
 
   if (!restaurantId) {
     return (
-      <div className="min-h-screen bg-[#FFFDF9] flex items-center justify-center p-6 text-center">
-        <div className="max-w-md bg-white p-10 rounded-[40px] shadow-xl border border-gray-100">
-          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+      <div className="min-h-screen bg-[#FFFDF9] dark:bg-gray-950 flex items-center justify-center p-6 text-center transition-colors">
+        <div className="max-w-md bg-white dark:bg-gray-900 p-10 rounded-[40px] shadow-xl border border-gray-100 dark:border-gray-800">
+          <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
             <AlertCircle className="text-red-500 w-10 h-10" />
           </div>
-          <h1 className="text-2xl font-bold mb-4">Invalid Link</h1>
-          <p className="text-gray-500 mb-8">This QR code or link is invalid. Please ask the restaurant host for a valid join link.</p>
+          <h1 className="text-2xl font-bold mb-4 dark:text-white">Invalid Link</h1>
+          <p className="text-gray-500 dark:text-gray-400 mb-8">This QR code or link is invalid. Please ask the restaurant host for a valid join link.</p>
           <Link to="/" className="text-[#F36D21] font-bold">Back to Qline Home</Link>
         </div>
       </div>
@@ -92,35 +90,44 @@ const JoinPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFFDF9] flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-[#FFFDF9] dark:bg-gray-950 flex flex-col items-center justify-center p-6 transition-colors duration-300">
+      <div className="absolute top-6 right-6">
+        <button 
+          onClick={toggleDarkMode}
+          className="p-3 rounded-2xl bg-white dark:bg-gray-900 shadow-xl shadow-gray-200/50 dark:shadow-black/20 border border-gray-100 dark:border-gray-800 text-gray-500 hover:text-[#F36D21] transition-all"
+        >
+          {isDarkMode ? <Sun size={24} /> : <Moon size={24} />}
+        </button>
+      </div>
+
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
           <div className="w-16 h-16 bg-[#F36D21] rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-lg shadow-orange-200">
             <Users size={32} />
           </div>
-          <h1 className="text-3xl font-black tracking-tight text-gray-900">Join the Waitlist</h1>
-          <div className="mt-2 flex items-center justify-center gap-1 text-gray-500 font-medium">
+          <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">Join the Waitlist</h1>
+          <div className="mt-2 flex items-center justify-center gap-1 text-gray-500 dark:text-gray-400 font-medium">
              <MapPin size={14} className="text-[#F36D21]" />
              <span>at {restaurantName}</span>
           </div>
         </div>
 
-        <div className="bg-white p-8 md:p-10 rounded-[40px] shadow-2xl shadow-gray-200/50 border border-gray-100">
+        <div className="bg-white dark:bg-gray-900 p-8 md:p-10 rounded-[40px] shadow-2xl shadow-gray-200/50 dark:shadow-black/20 border border-gray-100 dark:border-gray-800 transition-colors">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Last Name (e.g. Smith)</label>
+              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Last Name (e.g. Smith)</label>
               <input 
                 required
                 type="text" 
                 placeholder="Last Name"
-                className="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-[#F36D21] outline-none transition-all text-lg"
+                className="w-full px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:border-[#F36D21] outline-none transition-all text-lg"
                 value={formData.guest_name}
                 onChange={(e) => setFormData({ ...formData, guest_name: e.target.value })}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Party Size</label>
+              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Party Size</label>
               <div className="grid grid-cols-4 gap-2">
                 {[1, 2, 3, 4, 5, 6, 7, 8].map((size) => (
                   <button
@@ -130,7 +137,7 @@ const JoinPage = () => {
                     className={`py-3 rounded-xl font-bold transition-all border ${
                       formData.party_size === size 
                         ? 'bg-[#F36D21] border-[#F36D21] text-white' 
-                        : 'bg-white border-gray-100 text-gray-600 hover:border-[#F36D21]'
+                        : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-[#F36D21]'
                     }`}
                   >
                     {size}{size === 8 ? '+' : ''}
@@ -140,29 +147,29 @@ const JoinPage = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Phone Number (for SMS updates)</label>
+              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Phone Number (for SMS updates)</label>
               <input 
                 required
                 type="tel" 
                 placeholder="(555) 000-0000"
-                className="w-full px-4 py-3 rounded-2xl border border-gray-200 focus:border-[#F36D21] outline-none transition-all text-lg"
+                className="w-full px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:border-[#F36D21] outline-none transition-all text-lg"
                 value={formData.phone_number}
                 onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
               />
-              <p className="mt-2 text-[10px] text-gray-400 font-medium leading-relaxed">
+              <p className="mt-2 text-[10px] text-gray-400 dark:text-gray-500 font-medium leading-relaxed">
                 By joining, you agree to receive automated SMS updates about your waitlist status. Msg & data rates may apply.
               </p>
             </div>
 
             {error && (
-              <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold flex items-center gap-2">
+              <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-xl text-sm font-bold flex items-center gap-2">
                 <AlertCircle size={16} /> {error}
               </div>
             )}
 
             <button 
               disabled={isSubmitting}
-              className="w-full bg-[#F36D21] text-white py-5 rounded-2xl font-black text-xl hover:bg-[#D95D1C] transition-all shadow-lg shadow-orange-200 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full bg-[#F36D21] text-white py-5 rounded-2xl font-black text-xl hover:bg-[#D95D1C] transition-all shadow-lg shadow-orange-200 dark:shadow-black/40 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isSubmitting ? 'Joining...' : 'Join Waitlist'}
               {!isSubmitting && <ArrowRight size={20} />}
@@ -170,7 +177,7 @@ const JoinPage = () => {
           </form>
         </div>
 
-        <p className="mt-10 text-center text-gray-400 text-sm font-medium">
+        <p className="mt-10 text-center text-gray-400 dark:text-gray-600 text-sm font-medium">
           Powered by <span className="text-[#F36D21] font-bold">Qline</span>
         </p>
       </div>
