@@ -17,6 +17,7 @@ import TablesTab from '../components/dashboard/TablesTab';
 import SettingsTab from '../components/dashboard/SettingsTab';
 import { ReservationModal, WaitlistModal, TableModal } from '../components/dashboard/DashboardModals';
 import ErrorBoundary from '../components/layout/ErrorBoundary';
+import { DashboardSkeleton } from '../components/layout/Skeleton';
 
 const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
   const [searchParams] = useSearchParams();
@@ -218,8 +219,15 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FFFDF9] dark:bg-gray-950 flex items-center justify-center transition-colors">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#F36D21]"></div>
+      <div className="min-h-screen bg-[#FFFDF9] dark:bg-gray-950 flex flex-col transition-colors">
+        <nav className="h-20 px-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-900 shadow-sm">
+           <Skeleton className="h-10 w-32 rounded-xl" />
+           <div className="flex gap-4">
+             <Skeleton className="h-10 w-24 rounded-xl" />
+             <Skeleton className="h-10 w-24 rounded-xl" />
+           </div>
+        </nav>
+        <DashboardSkeleton />
       </div>
     );
   }
@@ -227,15 +235,15 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#FFFDF9] dark:bg-gray-950 flex items-center justify-center p-6 text-center transition-colors">
-        <div className="max-w-md bg-white dark:bg-gray-900 p-10 rounded-[40px] shadow-xl border border-gray-100 dark:border-gray-800">
-          <div className="w-20 h-20 bg-orange-50 dark:bg-orange-950/20 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Lock className="text-[#F36D21] w-10 h-10" />
+        <div className="max-w-md bg-white dark:bg-gray-900 p-10 rounded-[40px] shadow-2xl dark:shadow-black border border-gray-100 dark:border-gray-800">
+          <div className="w-24 h-24 bg-orange-50 dark:bg-orange-950/20 rounded-full flex items-center justify-center mx-auto mb-8">
+            <Lock className="text-[#F36D21] w-12 h-12" />
           </div>
-          <h1 className="text-3xl font-black mb-4">Login Required</h1>
-          <p className="text-gray-500 dark:text-gray-400 mb-8">Please sign in to your dashboard to manage your restaurant.</p>
+          <h1 className="text-3xl font-black mb-4 dark:text-white">Login Required</h1>
+          <p className="text-gray-500 dark:text-gray-400 mb-8 font-medium">Please sign in to your host dashboard to manage service.</p>
           <div className="flex flex-col gap-4">
-            <Link to="/login" className="bg-[#F36D21] text-white px-8 py-3 rounded-2xl font-black text-lg hover:bg-[#D95D1C] transition-all shadow-lg shadow-orange-200">Sign In</Link>
-            <Link to="/" className="text-gray-400 font-bold hover:text-gray-600">Back to Home</Link>
+            <Link to="/login" className="bg-[#F36D21] text-white px-8 py-4 rounded-[24px] font-black text-lg hover:bg-[#D95D1C] transition-all shadow-xl shadow-orange-200 dark:shadow-none">Sign In</Link>
+            <Link to="/" className="text-gray-400 font-bold hover:text-gray-600 dark:hover:text-white py-2">Back to Home</Link>
           </div>
         </div>
       </div>
@@ -247,15 +255,15 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
 
   return (
     <div className="min-h-screen bg-[#FFFDF9] dark:bg-gray-950 flex flex-col transition-colors duration-300">
-      <nav className="h-20 px-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-900 sticky top-0 z-50">
+      <nav className="h-20 px-6 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl sticky top-0 z-50">
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-all">
-          <div className="w-10 h-10 bg-[#F36D21] rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-200">
+          <div className="w-10 h-10 bg-[#F36D21] rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-200 dark:shadow-none">
             <Users size={24} />
           </div>
           <span className="text-2xl font-black tracking-tight dark:text-white">Qline</span>
         </Link>
         
-        <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-800 p-1.5 rounded-2xl overflow-x-auto max-w-[50%] no-scrollbar">
+        <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-800/50 p-1.5 rounded-2xl overflow-x-auto max-w-[50%] no-scrollbar border border-gray-100 dark:border-gray-800">
           {[
             { id: 'waitlist', icon: <Users size={18} />, label: 'Waitlist' },
             { id: 'reservations', icon: <Calendar size={18} />, label: 'Reservations' },
@@ -265,7 +273,7 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
             <button 
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shrink-0 ${activeTab === tab.id ? 'bg-white dark:bg-gray-700 text-[#F36D21] shadow-sm' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50'}`}
+              className={`px-5 py-2.5 rounded-xl text-sm font-black flex items-center gap-2 transition-all shrink-0 ${activeTab === tab.id ? 'bg-white dark:bg-gray-700 text-[#F36D21] shadow-sm' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50'}`}
             >
               {tab.icon} {tab.label}
             </button>
@@ -273,49 +281,46 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Theme Toggle */}
           <button 
             onClick={toggleDarkMode}
-            className="p-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-400 hover:text-[#F36D21] transition-all"
+            className="p-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-400 hover:text-[#F36D21] transition-all border border-gray-100 dark:border-gray-700 shadow-sm"
             title="Toggle Night Mode"
           >
             {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
 
-          <div className="hidden lg:flex flex-col items-end">
-            <span className="text-sm font-black text-gray-900 dark:text-white">{merchantName}</span>
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
-              <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div> Live Stand
+          <div className="hidden lg:flex flex-col items-end mr-2">
+            <span className="text-sm font-black text-gray-900 dark:text-white leading-tight">{merchantName}</span>
+            <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div> Live
             </span>
           </div>
-          <button onClick={handleLogout} className="text-gray-400 hover:text-red-500 transition-colors p-2" title="Logout">
+          <button onClick={handleLogout} className="text-gray-400 hover:text-red-500 transition-colors p-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10" title="Logout">
             <LogOut size={20} />
           </button>
         </div>
       </nav>
 
       {showOnboarding && (
-        <div className="m-6 mb-0 p-6 bg-gradient-to-r from-[#F36D21] to-[#F38B21] rounded-[32px] text-white shadow-xl shadow-orange-200/50 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
-          <div className="relative z-10 flex items-center gap-6">
-            <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shrink-0">
-              <CheckCircle2 size={32} />
+        <div className="m-6 mb-0 p-8 bg-gradient-to-r from-[#F36D21] to-[#F38B21] rounded-[32px] text-white shadow-2xl shadow-orange-200/50 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white/20 to-transparent opacity-50"></div>
+          <div className="relative z-10 flex items-center gap-8">
+            <div className="w-20 h-20 bg-white/20 backdrop-blur-xl rounded-[24px] flex items-center justify-center shrink-0 border border-white/20 shadow-xl">
+              <CheckCircle2 size={40} strokeWidth={3} />
             </div>
             <div>
-              <h2 className="text-2xl font-black tracking-tight">Welcome to Qline Stand!</h2>
-              <p className="text-white/80 font-medium max-w-lg">Let's get your host stand ready for service. Complete these 3 steps to start taking guests.</p>
+              <h2 className="text-3xl font-black tracking-tight mb-2">Ready for service?</h2>
+              <p className="text-white/80 font-bold text-lg max-w-lg leading-snug">Let's get your host stand fully configured. Add your physical tables to start tracking occupancy.</p>
             </div>
           </div>
           <div className="relative z-10 flex items-center gap-4 w-full md:w-auto">
              <button 
               onClick={() => { setActiveTab('settings'); setShowOnboarding(false); }}
-              className="flex-1 md:flex-none bg-white text-[#F36D21] px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-50 transition-all"
+              className="flex-1 md:flex-none bg-white text-[#F36D21] px-8 py-4 rounded-[20px] font-black text-lg flex items-center justify-center gap-2 hover:scale-[1.05] transition-all shadow-xl shadow-orange-700/20"
              >
-               Start Setup <ChevronRight size={18} />
+               Start Setup <ChevronRight size={20} strokeWidth={3} />
              </button>
-             <button onClick={() => setShowOnboarding(false)} className="px-4 py-3 text-white/60 hover:text-white font-bold transition-all">Dismiss</button>
-          </div>
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <Users size={120} />
+             <button onClick={() => setShowOnboarding(false)} className="px-6 py-4 text-white/70 hover:text-white font-black transition-all">Later</button>
           </div>
         </div>
       )}
@@ -359,58 +364,58 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
 
         {/* Sidebar */}
         <div className="w-full md:w-80 flex flex-col gap-6">
-          <div className="bg-white dark:bg-gray-900 p-8 rounded-[40px] border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group transition-colors">
-            <div className="absolute top-0 right-0 p-4 opacity-[0.03] dark:opacity-[0.05] group-hover:opacity-[0.08] transition-all">
+          <div className="bg-white dark:bg-gray-900 p-8 rounded-[40px] border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group transition-all duration-500 hover:shadow-xl dark:hover:shadow-black">
+            <div className="absolute top-0 right-0 p-4 opacity-[0.03] dark:opacity-[0.05] group-hover:opacity-[0.08] transition-all duration-700 scale-150 -rotate-12">
               <QrCode size={120} />
             </div>
-            <div className="flex items-center gap-3 mb-6 relative z-10">
-              <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-xl flex items-center justify-center">
-                <QrCode size={20} />
+            <div className="flex items-center gap-3 mb-8 relative z-10">
+              <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center shadow-sm">
+                <QrCode size={24} />
               </div>
-              <h3 className="font-black text-gray-900 dark:text-white">Guest Join QR</h3>
+              <h3 className="font-black text-gray-900 dark:text-white text-lg">Guest Join QR</h3>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-800 aspect-square rounded-[32px] flex items-center justify-center mb-6 border-2 border-dashed border-gray-200 dark:border-gray-700 group-hover:border-blue-100 dark:group-hover:border-blue-900 transition-all">
+            <div className="bg-gray-50 dark:bg-gray-800/50 aspect-square rounded-[32px] flex items-center justify-center mb-8 border-2 border-dashed border-gray-200 dark:border-gray-700 group-hover:border-blue-400 transition-all duration-500 relative">
                <img 
                   src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(joinUrl)}`} 
                   alt="QR Code" 
-                  className="w-40 h-40 dark:invert dark:brightness-110"
+                  className="w-44 h-44 dark:invert dark:brightness-110 transition-transform duration-500 group-hover:scale-105"
                 />
             </div>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 text-center">Print this for your host stand</p>
-            <div className="flex flex-col gap-2 relative z-10">
+            <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-6 text-center">Print this for your host stand</p>
+            <div className="flex flex-col gap-3 relative z-10">
               <button 
                 onClick={() => { navigator.clipboard.writeText(joinUrl); toast.success('Link copied!'); }}
-                className="w-full py-4 bg-gray-900 dark:bg-gray-800 text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-black dark:hover:bg-gray-700 shadow-lg"
+                className="w-full py-5 bg-gray-900 dark:bg-white dark:text-gray-900 text-white rounded-[20px] font-black text-sm flex items-center justify-center gap-2 hover:scale-[1.02] transition-all shadow-xl shadow-gray-200 dark:shadow-none"
               >
                 Copy URL
               </button>
               <button 
                 onClick={() => window.print()}
-                className="w-full py-3 bg-white dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-800 text-gray-400 rounded-2xl font-bold text-sm hover:border-blue-100 dark:hover:border-blue-900 hover:text-blue-500 transition-all"
+                className="w-full py-4 bg-white dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-800 text-gray-500 dark:text-gray-400 rounded-[20px] font-black text-sm hover:border-[#F36D21] hover:text-[#F36D21] transition-all"
               >
                 Print Sign
               </button>
             </div>
           </div>
           
-          <div className="bg-white dark:bg-gray-900 p-8 rounded-[40px] border border-gray-100 dark:border-gray-800 shadow-sm transition-colors">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-orange-50 dark:bg-orange-900/20 text-[#F36D21] rounded-xl flex items-center justify-center">
-                <HelpCircle size={20} />
+          <div className="bg-white dark:bg-gray-900 p-8 rounded-[40px] border border-gray-100 dark:border-gray-800 shadow-sm transition-all duration-500 hover:shadow-xl dark:hover:shadow-black">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/20 text-[#F36D21] rounded-2xl flex items-center justify-center">
+                <HelpCircle size={24} />
               </div>
-              <h3 className="font-black dark:text-white">Resources</h3>
+              <h3 className="font-black dark:text-white text-lg">Support</h3>
             </div>
             <ul className="space-y-4">
               <li>
-                <a href="#" className="flex items-center justify-between group p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-all">
-                  <span className="text-sm font-bold text-gray-500 group-hover:text-gray-900 dark:group-hover:text-white">Knowledge Base</span>
-                  <ChevronRight size={16} className="text-gray-300 group-hover:text-[#F36D21]" />
+                <a href="#" className="flex items-center justify-between group p-4 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-2xl transition-all border border-transparent hover:border-gray-100 dark:hover:border-gray-700">
+                  <span className="text-sm font-black text-gray-500 group-hover:text-gray-900 dark:group-hover:text-white">Knowledge Base</span>
+                  <ChevronRight size={18} className="text-gray-300 group-hover:text-[#F36D21] group-hover:translate-x-1 transition-all" />
                 </a>
               </li>
               <li>
-                <a href="mailto:support@qline.com" className="flex items-center justify-between group p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-all">
-                  <span className="text-sm font-bold text-gray-500 group-hover:text-gray-900 dark:group-hover:text-white">Email Support</span>
-                  <ChevronRight size={16} className="text-gray-300 group-hover:text-[#F36D21]" />
+                <a href="mailto:support@qline.com" className="flex items-center justify-between group p-4 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-2xl transition-all border border-transparent hover:border-gray-100 dark:hover:border-gray-700">
+                  <span className="text-sm font-black text-gray-500 group-hover:text-gray-900 dark:group-hover:text-white">Email Support</span>
+                  <ChevronRight size={18} className="text-gray-300 group-hover:text-[#F36D21] group-hover:translate-x-1 transition-all" />
                 </a>
               </li>
             </ul>
