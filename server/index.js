@@ -71,7 +71,13 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+    // Check if origin is in allowed list
+    const isAllowed = allowedOrigins.indexOf(origin) !== -1 || 
+                     (process.env.NODE_ENV !== 'production') ||
+                     (origin.includes('onrender.com')) ||
+                     (origin.includes('repl.co'));
+
+    if (isAllowed) {
       callback(null, true);
     } else {
       console.error(`CORS Error: Origin ${origin} not in allowed list:`, allowedOrigins);
