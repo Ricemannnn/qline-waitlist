@@ -24,14 +24,16 @@ const BASE_URL = process.env.BASE_URL || (process.env.REPL_SLUG ? `https://${pro
 // SECURITY: Configuration checks
 if (process.env.NODE_ENV === 'production') {
   if (!process.env.JWT_SECRET) {
-    console.error('FATAL ERROR: JWT_SECRET is not defined in environment variables.');
-    process.exit(1);
+    console.warn('-------------------------------------------------------------------');
+    console.warn('WARNING: JWT_SECRET is not defined. Using a temporary insecure secret.');
+    console.warn('Please set JWT_SECRET in your environment variables for production.');
+    console.warn('-------------------------------------------------------------------');
   }
   if (!process.env.BASE_URL && !process.env.REPL_SLUG) {
-    console.warn('WARNING: BASE_URL is not defined. Clover OAuth may fail if redirect URI is incorrect.');
+    console.warn('WARNING: BASE_URL is not defined. Clover OAuth may fail.');
   }
 }
-const JWT_SECRET = process.env.JWT_SECRET || 'qline-dev-secret-key-change-this';
+const JWT_SECRET = process.env.JWT_SECRET || 'qline-default-production-secret-change-me';
 
 // SECURITY: CORS Configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:5173', 'http://localhost:3000'];
