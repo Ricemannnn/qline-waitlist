@@ -11,21 +11,23 @@ import ErrorBoundary from './components/layout/ErrorBoundary';
 
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem('qline-theme') === 'dark' || 
-      (!localStorage.getItem('qline-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const saved = localStorage.getItem('qline-v2-theme');
+    if (saved) return saved === 'dark';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
   useEffect(() => {
+    const root = window.document.documentElement;
     if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('qline-theme', 'dark');
+      root.classList.add('dark');
+      localStorage.setItem('qline-v2-theme', 'dark');
     } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('qline-theme', 'light');
+      root.classList.remove('dark');
+      localStorage.setItem('qline-v2-theme', 'light');
     }
   }, [isDarkMode]);
 
-  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
+  const toggleDarkMode = () => setIsDarkMode(prev => !prev);
 
   return (
     <Router>
