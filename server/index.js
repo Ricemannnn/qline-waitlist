@@ -213,16 +213,16 @@ app.get('/api/settings/:restaurantId', (req, res) => {
 
 app.post('/api/settings/:restaurantId', (req, res) => {
   const { restaurantId } = req.params;
-  const { wait_time_per_party, total_tables, sms_template } = req.body;
+  const { wait_time_per_party, total_tables, menu_url, sms_template } = req.body;
   
   const existing = db.prepare('SELECT * FROM settings WHERE restaurant_id = ?').get(restaurantId);
   
   if (existing) {
-    db.prepare('UPDATE settings SET wait_time_per_party = ?, total_tables = ?, sms_template = ?, updated_at = CURRENT_TIMESTAMP WHERE restaurant_id = ?')
-      .run(wait_time_per_party, total_tables || 10, sms_template, restaurantId);
+    db.prepare('UPDATE settings SET wait_time_per_party = ?, total_tables = ?, menu_url = ?, sms_template = ?, updated_at = CURRENT_TIMESTAMP WHERE restaurant_id = ?')
+      .run(wait_time_per_party, total_tables || 10, menu_url || null, sms_template, restaurantId);
   } else {
-    db.prepare('INSERT INTO settings (restaurant_id, wait_time_per_party, total_tables, sms_template) VALUES (?, ?, ?, ?)')
-      .run(restaurantId, wait_time_per_party, total_tables || 10, sms_template);
+    db.prepare('INSERT INTO settings (restaurant_id, wait_time_per_party, total_tables, menu_url, sms_template) VALUES (?, ?, ?, ?, ?)')
+      .run(restaurantId, wait_time_per_party, total_tables || 10, menu_url || null, sms_template);
   }
   
   res.json({ success: true });
@@ -329,14 +329,15 @@ app.get('/api/waitlist/guest/:id', (req, res) => {
   const position = allWaiting.findIndex(g => g.id === parseInt(id)) + 1;
   const ahead = position - 1;
 
-  const settings = db.prepare('SELECT wait_time_per_party FROM settings WHERE restaurant_id = ?').get(guest.restaurant_id);
+  const settings = db.prepare('SELECT wait_time_per_party, menu_url FROM settings WHERE restaurant_id = ?').get(guest.restaurant_id);
   const waitTimePerParty = settings ? settings.wait_time_per_party : 10;
 
   res.json({
     guest,
     position,
     ahead,
-    estimated_wait: ahead * waitTimePerParty
+    estimated_wait: ahead * waitTimePerParty,
+    menu_url: settings ? settings.menu_url : null
   });
 });
 

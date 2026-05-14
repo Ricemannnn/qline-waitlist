@@ -54,6 +54,7 @@ db.exec(`
     restaurant_id TEXT PRIMARY KEY,
     wait_time_per_party INTEGER DEFAULT 10,
     total_tables INTEGER DEFAULT 10,
+    menu_url TEXT,
     sms_template TEXT DEFAULT 'Hi {guest_name}, your table at {restaurant_name} is ready!',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (restaurant_id) REFERENCES restaurants (id)
@@ -71,11 +72,13 @@ db.exec(`
   );
 `);
 
-// Migration: Add total_tables to settings if it doesn't exist
+// Migration: Add columns to settings if they don't exist
 try {
   db.prepare('ALTER TABLE settings ADD COLUMN total_tables INTEGER DEFAULT 10').run();
-} catch (e) {
-  // Column already exists or other error
-}
+} catch (e) {}
+
+try {
+  db.prepare('ALTER TABLE settings ADD COLUMN menu_url TEXT').run();
+} catch (e) {}
 
 export default db;

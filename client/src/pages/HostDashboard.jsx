@@ -659,6 +659,17 @@ const HostDashboard = () => {
             </div>
           </div>
           <div>
+            <label className="block text-sm font-semibold mb-2">Menu Link (Optional)</label>
+            <input 
+              type="url" 
+              value={settings.menu_url || ''} 
+              onChange={(e) => setSettings({ ...settings, menu_url: e.target.value })}
+              placeholder="https://your-restaurant.com/menu"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-[#F36D21]" 
+            />
+            <p className="text-[10px] text-gray-400 mt-1 ml-1 uppercase font-bold tracking-widest">Guests can view this while waiting</p>
+          </div>
+          <div>
             <label className="block text-sm font-semibold mb-2">SMS Message Template</label>
             <textarea 
               value={settings.sms_template}

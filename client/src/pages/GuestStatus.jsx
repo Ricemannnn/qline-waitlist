@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Users, Clock, MapPin, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Users, Clock, MapPin, CheckCircle2, AlertCircle, UtensilsCrossed } from 'lucide-react';
 import { getGuestStatus } from '../api';
 
 const GuestStatus = () => {
@@ -16,7 +16,7 @@ const GuestStatus = () => {
       setError(null);
     } catch (err) {
       console.error('Failed to fetch status:', err);
-      setError('Could not find your waitlist entry. It may have expired or been removed.');
+      setError('Waitlist entry not found.');
     } finally {
       setLoading(false);
     }
@@ -43,7 +43,7 @@ const GuestStatus = () => {
           <AlertCircle className="text-red-500 w-10 h-10" />
         </div>
         <h1 className="text-2xl font-bold mb-4">Entry Not Found</h1>
-        <p className="text-gray-500 max-w-sm mb-8">{error}</p>
+        <p className="text-gray-500 max-w-sm mb-8">Your waitlist entry may have expired or been removed.</p>
         <button 
           onClick={() => window.location.href = '/'}
           className="bg-[#F36D21] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#D95D1C] transition-all"
@@ -54,13 +54,12 @@ const GuestStatus = () => {
     );
   }
 
-  const { guest, ahead, estimated_wait } = data;
+  const { guest, ahead, estimated_wait, menu_url } = data;
   const isSeated = guest.status === 'seated';
   const isCancelled = guest.status === 'cancelled';
 
   return (
     <div className="min-h-screen bg-[#FFFDF9] flex flex-col">
-      {/* Header */}
       <header className="px-6 py-8 text-center">
         <div className="inline-flex items-center gap-2 mb-6">
           <div className="w-8 h-8 bg-[#F36D21] rounded-lg flex items-center justify-center text-white">
@@ -86,8 +85,8 @@ const GuestStatus = () => {
               <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <AlertCircle className="text-gray-500 w-10 h-10" />
               </div>
-              <h2 className="text-2xl font-bold mb-2">Reservation Cancelled</h2>
-              <p className="text-gray-500">This entry has been removed from the waitlist.</p>
+              <h2 className="text-2xl font-bold mb-2">Waitlist Removed</h2>
+              <p className="text-gray-500">Your entry has been removed from the waitlist.</p>
             </div>
           ) : (
             <>
@@ -97,7 +96,6 @@ const GuestStatus = () => {
                 <p className="text-lg font-bold text-gray-900">Parties Ahead of You</p>
               </div>
 
-              {/* Progress Bar */}
               <div className="w-full bg-gray-100 h-3 rounded-full mb-10 overflow-hidden">
                 <div 
                   className="bg-[#F36D21] h-full rounded-full transition-all duration-1000 ease-out"
@@ -105,7 +103,7 @@ const GuestStatus = () => {
                 ></div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 mb-8">
                 <div className="bg-orange-50/50 p-6 rounded-3xl border border-orange-100">
                   <div className="flex justify-center mb-3">
                     <Clock className="text-[#F36D21] w-6 h-6" />
@@ -121,6 +119,18 @@ const GuestStatus = () => {
                   <p className="text-xl font-bold text-blue-900">{guest.party_size}</p>
                 </div>
               </div>
+
+              {menu_url && (
+                <a 
+                  href={menu_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-full inline-flex items-center justify-center gap-3 bg-gray-900 text-white py-5 rounded-[24px] font-bold text-lg hover:bg-black transition-all shadow-lg"
+                >
+                  <UtensilsCrossed size={20} />
+                  View Menu
+                </a>
+              )}
             </>
           )}
         </div>
@@ -132,13 +142,13 @@ const GuestStatus = () => {
             </div>
             <div>
               <h4 className="font-bold text-sm mb-1">Stay Nearby</h4>
-              <p className="text-xs text-gray-500 leading-relaxed">We'll text you when your table is ready. Please make sure you're within 5 minutes of the restaurant.</p>
+              <p className="text-xs text-gray-500 leading-relaxed">We'll notify you when your table is ready. Please make sure you're within 5 minutes of the restaurant.</p>
             </div>
           </div>
           
           <div className="text-center">
             <p className="text-xs text-gray-400">
-              Auto-updates every 10 seconds. Keep this page open to track your spot.
+              Auto-updates every 10 seconds.
             </p>
           </div>
         </div>
