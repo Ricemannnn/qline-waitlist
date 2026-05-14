@@ -52,12 +52,29 @@ if (process.env.NODE_ENV === 'production') {
 const JWT_SECRET = process.env.JWT_SECRET || 'qline-default-production-secret-change-me';
 
 // SECURITY: CORS Configuration
-const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:5173', 'http://localhost:3000'];
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
+
+// Add BASE_URL to allowed origins if it exists
+if (process.env.BASE_URL) {
+  try {
+    allowedOrigins.push(new URL(process.env.BASE_URL).origin);
+  } catch (e) {
+    allowedOrigins.push(process.env.BASE_URL);
+  }
+}
+
+// Add common dev ports
+allowedOrigins.push('http://localhost:5173', 'http://localhost:3000', 'http://localhost:3001');
+
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
       callback(null, true);
     } else {
+      console.error(`CORS Error: Origin ${origin} not in allowed list:`, allowedOrigins);
       callback(new Error('Not allowed by CORS'));
     }
   },
