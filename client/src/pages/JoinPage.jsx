@@ -58,7 +58,10 @@ const JoinPage = ({ isDarkMode, toggleDarkMode }) => {
       const guestId = response.data.id;
       navigate(`/status/${guestId}`);
     } catch (err) {
-      setError(err.response?.data?.error || 'Something went wrong. Please try again.');
+      const errorMsg = err.response?.data?.error || 
+                       (err.response?.data?.errors && err.response.data.errors[0]?.msg) ||
+                       'Something went wrong. Please try again.';
+      setError(errorMsg);
     } finally {
       setIsSubmitting(false);
     }

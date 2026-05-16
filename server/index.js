@@ -450,11 +450,22 @@ app.post('/api/waitlist/:restaurantId/join', validate([
   const { restaurantId } = req.params;
   const { guest_name, party_size, phone_number } = req.body;
 
-  const result = db.prepare(
-    'INSERT INTO waitlist (restaurant_id, guest_name, party_size, phone_number) VALUES (?, ?, ?, ?)'
-  ).run(restaurantId, guest_name, party_size, phone_number);
+  // Verify restaurant exists
+  const restaurant = db.prepare('SELECT id FROM restaurants WHERE id = ?').get(restaurantId);
+  if (!restaurant) {
+    return res.status(404).json({ error: 'This restaurant hasn\'t set up their Qline waitlist yet.' });
+  }
 
-  res.status(201).json({ id: result.lastInsertRowid, status: 'waiting' });
+  try {
+    const result = db.prepare(
+      'INSERT INTO waitlist (restaurant_id, guest_name, party_size, phone_number) VALUES (?, ?, ?, ?)'
+    ).run(restaurantId, guest_name, party_size, phone_number);
+
+    res.status(201).json({ id: result.lastInsertRowid, status: 'waiting' });
+  } catch (error) {
+    console.error('Join Waitlist Error:', error);
+    res.status(500).json({ error: 'Failed to join the waitlist. Please try again.' });
+  }
 });
 
 app.patch('/api/waitlist/status/:id', authenticateToken, (req, res) => {
