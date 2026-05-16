@@ -17,7 +17,7 @@ import TablesTab from '../components/dashboard/TablesTab';
 import SettingsTab from '../components/dashboard/SettingsTab';
 import { ReservationModal, WaitlistModal, TableModal } from '../components/dashboard/DashboardModals';
 import ErrorBoundary from '../components/layout/ErrorBoundary';
-import { DashboardSkeleton } from '../components/layout/Skeleton';
+import { DashboardSkeleton, Skeleton } from '../components/layout/Skeleton';
 
 const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
   const [searchParams] = useSearchParams();
