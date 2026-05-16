@@ -220,6 +220,12 @@ app.post('/api/auth/logout', (req, res) => {
 // Get current user session
 app.get('/api/auth/me', authenticateToken, (req, res) => {
   const user = db.prepare('SELECT u.id, u.email, u.restaurant_id, r.name as restaurant_name FROM users u JOIN restaurants r ON u.restaurant_id = r.id WHERE u.id = ?').get(req.user.id);
+  
+  if (user) {
+    const tableCount = db.prepare('SELECT COUNT(*) as count FROM tables WHERE restaurant_id = ?').get(user.restaurant_id).count;
+    user.new_account = tableCount === 0;
+  }
+  
   res.json(user);
 });
 
@@ -278,10 +284,17 @@ app.get('/api/auth/clover/callback', async (req, res) => {
 // Check if merchant is connected to Clover
 app.get('/api/auth/clover/status/:merchantId', (req, res) => {
   const { merchantId } = req.params;
-  const restaurant = db.prepare('SELECT * FROM restaurants WHERE clover_merchant_id = ?').get(merchantId);
+  // Try finding by clover_merchant_id first, then by internal id
+  let restaurant = db.prepare('SELECT * FROM restaurants WHERE clover_merchant_id = ?').get(merchantId);
+  if (!restaurant) {
+    restaurant = db.prepare('SELECT * FROM restaurants WHERE id = ?').get(merchantId);
+  }
   
-  if (restaurant && restaurant.clover_access_token) {
-    res.json({ connected: true, merchantName: restaurant.name });
+  if (restaurant) {
+    res.json({ 
+      connected: !!restaurant.clover_access_token, 
+      merchantName: restaurant.name 
+    });
   } else {
     res.json({ connected: false });
   }

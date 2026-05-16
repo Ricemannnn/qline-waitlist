@@ -153,6 +153,91 @@ const LandingPage = ({ isDarkMode, toggleDarkMode }) => {
         </div>
       </section>
 
+      {/* Product Showcase */}
+      <section className="py-32 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="relative rounded-[60px] overflow-hidden shadow-2xl">
+            <img 
+              src="https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&q=80&w=1536" 
+              alt="Modern Restaurant Host Stand" 
+              className="w-full h-[600px] object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-12 md:p-24">
+              <div className="max-w-2xl">
+                <h2 className="text-4xl md:text-5xl font-black text-white mb-6">Designed for the Modern Host Stand</h2>
+                <p className="text-white/80 text-xl font-bold leading-relaxed">Everything you need to manage your guests, tables, and reservations in one beautiful interface.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="py-32 px-6 bg-[#FFFDF9] dark:bg-gray-950 transition-colors">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-24">
+            <h2 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight mb-6">Simple, Transparent Pricing</h2>
+            <p className="text-gray-500 dark:text-gray-400 text-xl font-bold max-w-2xl mx-auto">No hidden fees. Choose the plan that fits your restaurant's needs.</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                name: 'Starter',
+                price: '$0',
+                desc: 'Perfect for small cafes & pop-ups',
+                features: ['Up to 50 guests/mo', 'Basic QR Waitlist', 'SMS Notifications', '1 User Account'],
+                cta: 'Start for Free',
+                highlight: false
+              },
+              {
+                name: 'Professional',
+                price: '$29',
+                desc: 'Best for busy restaurants',
+                features: ['Unlimited Guests', 'Full Floor Management', 'Clover POS Sync', 'Advanced Analytics', 'Priority SMS Support'],
+                cta: 'Start 14-Day Trial',
+                highlight: true
+              },
+              {
+                name: 'Enterprise',
+                price: 'Custom',
+                desc: 'For multi-location groups',
+                features: ['Multi-unit Dashboard', 'Custom Branding', 'API Access', 'Dedicated Success Manager', 'SSO Integration'],
+                cta: 'Contact Sales',
+                highlight: false
+              }
+            ].map((plan, i) => (
+              <div key={i} className={`relative p-10 rounded-[40px] border transition-all duration-500 ${plan.highlight ? 'bg-[#1A1A1A] border-gray-800 shadow-2xl scale-[1.05] z-10' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 shadow-xl'}`}>
+                {plan.highlight && (
+                  <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-[#F36D21] text-white px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest">
+                    Most Popular
+                  </div>
+                )}
+                <h3 className={`text-2xl font-black mb-2 ${plan.highlight ? 'text-white' : 'text-gray-900 dark:text-white'}`}>{plan.name}</h3>
+                <div className="flex items-baseline gap-1 mb-6">
+                  <span className={`text-5xl font-black ${plan.highlight ? 'text-white' : 'text-gray-900 dark:text-white'}`}>{plan.price}</span>
+                  {plan.price !== 'Custom' && <span className={`text-lg font-bold ${plan.highlight ? 'text-gray-400' : 'text-gray-500'}`}>/mo</span>}
+                </div>
+                <p className={`font-bold mb-10 ${plan.highlight ? 'text-gray-400' : 'text-gray-500'}`}>{plan.desc}</p>
+                
+                <ul className="space-y-4 mb-12">
+                  {plan.features.map((feature, j) => (
+                    <li key={j} className="flex items-center gap-3">
+                      <CheckCircle2 size={20} className={plan.highlight ? 'text-[#F36D21]' : 'text-[#F36D21]'} />
+                      <span className={`font-bold ${plan.highlight ? 'text-gray-300' : 'text-gray-600 dark:text-gray-400'}`}>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <button className={`w-full py-5 rounded-2xl font-black text-lg transition-all ${plan.highlight ? 'bg-[#F36D21] text-white hover:bg-[#D95D1C]' : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'}`}>
+                  {plan.cta}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Social Proof */}
       <section className="py-32 px-6">
          <div className="max-w-5xl mx-auto bg-[#F36D21] rounded-[60px] p-12 md:p-24 text-white text-center relative overflow-hidden shadow-2xl shadow-orange-200">

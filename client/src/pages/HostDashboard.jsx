@@ -101,13 +101,13 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
         getSettings(currentMerchantId),
         getTables(currentMerchantId)
       ]);
-      setWaitlist(wl.data);
-      setReservations(res.data);
-      setSettings(sett.data);
-      setTables(tbl.data);
+      setWaitlist(wl.data || { entries: [], summary: { total_waiting: 0, next_estimated_wait: 0 } });
+      setReservations(res.data || []);
+      setSettings(sett.data || { wait_time_per_party: 10, total_tables: 10, menu_url: '', sms_template: '' });
+      setTables(tbl.data || []);
       
       // Auto-show onboarding if brand new
-      if (tbl.data.length === 0 && wl.data.entries.length === 0) {
+      if ((!tbl.data || tbl.data.length === 0) && (!wl.data?.entries || wl.data.entries.length === 0)) {
         setShowOnboarding(true);
       }
     } catch (err) {
