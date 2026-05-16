@@ -184,7 +184,7 @@ const LandingPage = ({ isDarkMode, toggleDarkMode }) => {
             {[
               {
                 name: 'Starter',
-                price: '$0',
+                price: '$29',
                 desc: 'Perfect for small cafes & pop-ups',
                 features: ['Up to 50 guests/mo', 'Basic QR Waitlist', 'SMS Notifications', '1 User Account'],
                 cta: 'Start for Free',
@@ -192,7 +192,7 @@ const LandingPage = ({ isDarkMode, toggleDarkMode }) => {
               },
               {
                 name: 'Professional',
-                price: '$29',
+                price: '$59',
                 desc: 'Best for busy restaurants',
                 features: ['Unlimited Guests', 'Full Floor Management', 'Clover POS Sync', 'Advanced Analytics', 'Priority SMS Support'],
                 cta: 'Start 14-Day Trial',
