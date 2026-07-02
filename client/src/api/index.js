@@ -11,6 +11,7 @@ const api = axios.create({
 export const getWaitlist = (restaurantId) => api.get(`/waitlist/${restaurantId}`);
 export const joinWaitlist = (restaurantId, data) => api.post(`/waitlist/${restaurantId}/join`, data);
 export const updateWaitlistStatus = (id, status) => api.patch(`/waitlist/status/${id}`, { status });
+export const cancelWaitlistStatus = (id) => api.post(`/waitlist/guest/${id}/cancel`);
 export const getGuestStatus = (id) => api.get(`/waitlist/guest/${id}`);
 export const notifyGuest = (restaurantId, id) => api.post(`/waitlist/${restaurantId}/notify/${id}`);
 
@@ -37,5 +38,18 @@ export const getMe = () => api.get('/auth/me');
 
 // Clover Status
 export const getCloverStatus = (merchantId) => api.get(`/auth/clover/status/${merchantId}`);
+
+// Dietary & Allergy
+export const getDietaryRestrictions = (restaurantId) => api.get(`/dietary-restrictions/${restaurantId}`);
+export const saveReservationDietary = (restaurantId, data) => api.post(`/reservations/${restaurantId}/dietary`, data);
+export const getReservationDietary = (restaurantId, reservationId) => api.get(`/reservations/${restaurantId}/dietary/${reservationId}`);
+export const getCustomerDietaryProfile = (restaurantId, phone) => api.get(`/customers/${restaurantId}/dietary-profile/${phone}`);
+export const saveCustomerDietaryProfile = (restaurantId, data) => api.put(`/customers/${restaurantId}/dietary-profile`, data);
+export const getDietaryAnalytics = (restaurantId) => api.get(`/analytics/${restaurantId}/dietary`);
+export const updateDietaryModification = (reservationId, data) => api.patch(`/reservations/dietary/${reservationId}/modification`, data);
+
+// Kitchen
+export const getKitchenData = (restaurantId) => api.get(`/kitchen/${restaurantId}`);
+export const linkTableReservation = (tableId, reservationId) => api.patch(`/tables/${tableId}/link-reservation`, { reservation_id: reservationId });
 
 export default api;

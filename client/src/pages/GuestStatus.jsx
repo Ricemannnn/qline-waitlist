@@ -5,7 +5,7 @@ import {
   MapPin, RefreshCw, AlertCircle, Trash2, ExternalLink, Sun, Moon, Check
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { getGuestStatus, updateWaitlistStatus, getCloverStatus } from '../api';
+import { getGuestStatus, cancelWaitlistStatus, getCloverStatus } from '../api';
 import { StatusSkeleton } from '../components/layout/Skeleton';
 
 const JourneyMap = ({ status }) => {
@@ -66,6 +66,11 @@ const GuestStatus = ({ isDarkMode, toggleDarkMode }) => {
     if (showRefresh) setIsRefreshing(true);
     try {
       const response = await getGuestStatus(id);
+      if (response.data.guest?.status === 'cancelled') {
+        setError('You have left the waitlist.');
+        setData(null);
+        return;
+      }
       setData(response.data);
       setLastUpdated(new Date());
       setError('');
@@ -94,11 +99,12 @@ const GuestStatus = ({ isDarkMode, toggleDarkMode }) => {
     
     setIsCancelling(true);
     try {
-      await updateWaitlistStatus(id, 'cancelled');
+      await cancelWaitlistStatus(id);
       toast.success('Removed from waitlist');
       fetchStatus();
     } catch (err) {
-      toast.error('Failed to remove. Please try again.');
+      const errorMsg = err.response?.data?.error || 'Failed to remove. Please try again.';
+      toast.error(errorMsg);
     } finally {
       setIsCancelling(false);
     }

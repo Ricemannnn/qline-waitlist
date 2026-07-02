@@ -39,8 +39,10 @@ const LoginPage = ({ isDarkMode, toggleDarkMode }) => {
         navigate(`/host?merchantId=${response.data.user.restaurant_id}`);
       } else {
         await register(formData);
-        setIsLogin(true);
-        toast.success('Account created! Please sign in.');
+        // Auto-login after registration for smooth UX
+        const loginResponse = await login({ email: formData.email, password: formData.password });
+        toast.success('Account created! Welcome to Qline.');
+        navigate(`/host?merchantId=${loginResponse.data.user.restaurant_id}`);
       }
     } catch (err) {
       toast.error(err.response?.data?.error || 'Authentication failed.');

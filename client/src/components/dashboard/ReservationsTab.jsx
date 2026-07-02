@@ -1,5 +1,6 @@
 import React from 'react';
 import { Calendar, Plus, Users, Check, X } from 'lucide-react';
+import DietarySummaryBadge from '../dietary/DietarySummaryBadge';
 
 const ReservationsTab = ({ reservations, onAddClick, onStatusChange }) => {
   return (
@@ -34,7 +35,15 @@ const ReservationsTab = ({ reservations, onAddClick, onStatusChange }) => {
                       <span>{new Date(res.reservation_time).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
                     </div>
                     <div>
-                      <p className="font-bold text-gray-900 dark:text-white">{res.guest_name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-gray-900 dark:text-white">{res.guest_name}</p>
+                        <DietarySummaryBadge 
+                          dietary_restrictions={res.dietary_restrictions}
+                          allergies={res.allergies}
+                          other_needs={res.other_needs}
+                          guestName={res.guest_name}
+                        />
+                      </div>
                       <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 font-medium mt-0.5">
                         <span className="flex items-center gap-1"><Users className="w-3 h-3" /> Party of {res.party_size}</span>
                         <span>• {new Date(res.reservation_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>

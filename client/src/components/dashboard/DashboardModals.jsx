@@ -1,5 +1,7 @@
 import React from 'react';
 import { X, Users, Calendar, Clock, Phone, User, Plus, LayoutDashboard } from 'lucide-react';
+import DietarySelector from '../dietary/DietarySelector';
+import AllergySelector from '../dietary/AllergySelector';
 
 const ModalOverlay = ({ children, isOpen, onClose }) => {
   if (!isOpen) return null;
@@ -75,6 +77,21 @@ export const ReservationModal = ({ isOpen, onClose, formData, setFormData, onSub
             className="w-full pl-12 pr-6 py-4 bg-gray-50 dark:bg-gray-800 dark:text-white rounded-2xl border border-transparent focus:border-[#F36D21] focus:ring-4 focus:ring-[#F36D21]/5 outline-none transition-all font-bold"
             value={formData.phone_number}
             onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+          />
+        </div>
+      </div>
+      {/* Dietary & Allergy Fields */}
+      <div className="bg-gray-50/50 dark:bg-gray-800/30 p-5 rounded-2xl border border-gray-100 dark:border-gray-800 space-y-4">
+        <DietarySelector
+          value={formData.dietary_restrictions || []}
+          onChange={(val) => setFormData({ ...formData, dietary_restrictions: val })}
+          otherNeeds={formData.other_needs || ''}
+          onOtherNeedsChange={(val) => setFormData({ ...formData, other_needs: val })}
+        />
+        <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
+          <AllergySelector
+            value={formData.allergies || []}
+            onChange={(val) => setFormData({ ...formData, allergies: val })}
           />
         </div>
       </div>

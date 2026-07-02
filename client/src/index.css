@@ -1,5 +1,21 @@
 @import "tailwindcss";
 
+@theme {
+  --color-dietary-green: #16a34a;
+  --color-dietary-purple: #9333ea;
+  --color-dietary-orange: #ea580c;
+  --color-dietary-red: #dc2626;
+  --color-dietary-caution: #eab308;
+}
+
+:root {
+  --dietary-green: #16a34a;
+  --dietary-purple: #9333ea;
+  --dietary-orange: #ea580c;
+  --dietary-red: #dc2626;
+  --dietary-caution: #eab308;
+}
+
 @variant dark (&:where(.dark, .dark *));
 
 @layer base {

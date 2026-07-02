@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Plus, Search, Bell, Check, X, AlertCircle, Clock } from 'lucide-react';
+import { Users, Plus, Search, Bell, Check, X, AlertCircle, Clock, UtensilsCrossed } from 'lucide-react';
+import DietaryProfileCard from '../dietary/DietaryProfileCard';
+import DietarySummaryBadge from '../dietary/DietarySummaryBadge';
+import { getCustomerDietaryProfile, saveCustomerDietaryProfile } from '../../api';
 
 const WaitlistTab = ({ 
   waitlist, 
@@ -7,11 +10,49 @@ const WaitlistTab = ({
   openTablesCount, 
   onAddClick, 
   onNotify, 
-  onStatusChange 
+  onStatusChange,
+  merchantId 
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [confirmId, setConfirmId] = useState(null);
   const [now, setNow] = useState(new Date());
+  const [dietaryPopupGuest, setDietaryPopupGuest] = useState(null);
+  const [guestDietaryData, setGuestDietaryData] = useState(null);
+  const [loadingDietary, setLoadingDietary] = useState(false);
+
+  const openDietaryPopup = async (guest) => {
+    setDietaryPopupGuest(guest);
+    setLoadingDietary(true);
+    try {
+      if (guest.phone_number) {
+        const res = await getCustomerDietaryProfile(merchantId || guest.restaurant_id, guest.phone_number);
+        setGuestDietaryData(Array.isArray(res.data) ? res.data[0] : res.data);
+      } else {
+        setGuestDietaryData(null);
+      }
+    } catch (e) {
+      setGuestDietaryData(null);
+    } finally {
+      setLoadingDietary(false);
+    }
+  };
+
+  const handleSaveDietaryNotes = async (notes) => {
+    if (!dietaryPopupGuest) return;
+    try {
+      await saveCustomerDietaryProfile(merchantId || dietaryPopupGuest.restaurant_id, {
+        guest_name: dietaryPopupGuest.guest_name,
+        guest_phone: dietaryPopupGuest.phone_number || '',
+        restaurant_notes: notes,
+        dietary_restrictions: guestDietaryData?.dietary_restrictions || [],
+        allergies: guestDietaryData?.allergies || [],
+        other_needs: guestDietaryData?.other_needs || ''
+      });
+      setGuestDietaryData(prev => ({ ...prev, restaurant_notes: notes }));
+    } catch (e) {
+      // silently fail
+    }
+  };
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 30000);
@@ -121,6 +162,19 @@ const WaitlistTab = ({
                       <div>
                         <div className="flex items-center gap-3 mb-1">
                           <p className="font-black text-xl text-gray-900 dark:text-white tracking-tight">{guest.guest_name}</p>
+                          <DietarySummaryBadge 
+                            dietary_restrictions={guest.dietary_restrictions}
+                            allergies={guest.allergies}
+                            other_needs={guest.other_needs}
+                            guestName={guest.guest_name}
+                          />
+                          <button
+                            onClick={() => openDietaryPopup(guest)}
+                            className="p-1.5 text-gray-400 hover:text-[#F36D21] hover:bg-[#F36D21]/5 rounded-lg transition-all"
+                            title="Dietary Profile"
+                          >
+                            <UtensilsCrossed size={16} />
+                          </button>
                           {guest.status === 'notified' && (
                             <span className="bg-blue-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest animate-pulse shadow-lg shadow-blue-500/20">
                               Notified
@@ -193,6 +247,37 @@ const WaitlistTab = ({
           )}
         </div>
       </div>
+
+      {/* Dietary Profile Popup */}
+      {dietaryPopupGuest && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={() => setDietaryPopupGuest(null)}>
+          <div className="absolute inset-0 bg-gray-900/40 dark:bg-black/60 backdrop-blur-sm"></div>
+          <div className="relative w-full max-w-md max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            {loadingDietary ? (
+              <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 text-center border border-gray-100 dark:border-gray-800 shadow-2xl">
+                <div className="animate-pulse space-y-4">
+                  <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-2xl mx-auto"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto"></div>
+                </div>
+              </div>
+            ) : (
+              <DietaryProfileCard
+                data={{
+                  guest_name: dietaryPopupGuest.guest_name,
+                  dietary_restrictions: guestDietaryData?.dietary_restrictions || dietaryPopupGuest.dietary_restrictions || [],
+                  allergies: guestDietaryData?.allergies || dietaryPopupGuest.allergies || [],
+                  other_needs: guestDietaryData?.other_needs || dietaryPopupGuest.other_needs || '',
+                  restaurant_notes: guestDietaryData?.restaurant_notes || '',
+                  last_updated: guestDietaryData?.last_updated
+                }}
+                editable={true}
+                onSaveNotes={handleSaveDietaryNotes}
+              />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

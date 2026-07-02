@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { 
-  Users, Calendar, Settings, Bell, LogOut, LayoutDashboard, QrCode, Zap, CheckCircle2, ChevronRight, HelpCircle, Sun, Moon
+  Users, Calendar, Settings, Bell, LogOut, LayoutDashboard, QrCode, Zap, CheckCircle2, ChevronRight, HelpCircle, Sun, Moon, ChefHat, BarChart3
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { 
   getWaitlist, updateWaitlistStatus, notifyGuest, getReservations, 
   getCloverStatus, getSettings, updateSettings, addReservation, 
-  updateReservationStatus, getMe, joinWaitlist, getTables, addTable, updateTable
+  updateReservationStatus, getMe, joinWaitlist, getTables, addTable, updateTable, logout
 } from '../api';
 
 // Sub-components
@@ -15,6 +15,8 @@ import WaitlistTab from '../components/dashboard/WaitlistTab';
 import ReservationsTab from '../components/dashboard/ReservationsTab';
 import TablesTab from '../components/dashboard/TablesTab';
 import SettingsTab from '../components/dashboard/SettingsTab';
+import KitchenTab from '../components/dashboard/KitchenTab';
+import DietaryAnalytics from '../components/dashboard/DietaryAnalytics';
 import { ReservationModal, WaitlistModal, TableModal } from '../components/dashboard/DashboardModals';
 import ErrorBoundary from '../components/layout/ErrorBoundary';
 import { DashboardSkeleton, Skeleton } from '../components/layout/Skeleton';
@@ -33,6 +35,7 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
   const [currentMerchantId, setCurrentMerchantId] = useState(null);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
   
   // Modals state
   const [showResModal, setShowResModal] = useState(false);
@@ -83,6 +86,7 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
 
   const handleLogout = async () => {
     try {
+      await logout();
       localStorage.removeItem('qline_token');
       localStorage.removeItem('qline_merchant_id');
       navigate('/login');
@@ -268,6 +272,7 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
             { id: 'waitlist', icon: <Users size={18} />, label: 'Waitlist' },
             { id: 'reservations', icon: <Calendar size={18} />, label: 'Reservations' },
             { id: 'tables', icon: <LayoutDashboard size={18} />, label: 'Tables' },
+            { id: 'kitchen', icon: <ChefHat size={18} />, label: 'Kitchen' },
             { id: 'settings', icon: <Settings size={18} />, label: 'Settings' }
           ].map(tab => (
             <button 
@@ -347,9 +352,13 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
           {activeTab === 'tables' && (
             <TablesTab 
               tables={tables} 
+              restaurantId={currentMerchantId}
               onAddClick={() => setShowTableModal(true)}
               onUpdateStatus={handleUpdateTableStatus}
             />
+          )}
+          {activeTab === 'kitchen' && (
+            <KitchenTab restaurantId={currentMerchantId} />
           )}
           {activeTab === 'settings' && (
             <SettingsTab 
@@ -397,7 +406,24 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
               </button>
             </div>
           </div>
-          
+
+          {/* Analytics Button Card */}
+          <div className="bg-white dark:bg-gray-900 p-8 rounded-[40px] border border-gray-100 dark:border-gray-800 shadow-sm transition-all duration-500 hover:shadow-xl dark:hover:shadow-black">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/20 text-[#F36D21] rounded-2xl flex items-center justify-center">
+                <BarChart3 size={24} />
+              </div>
+              <h3 className="font-black dark:text-white text-lg">Dietary Analytics</h3>
+            </div>
+            <p className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">View dietary restriction and allergy trends across all reservations.</p>
+            <button
+              onClick={() => setShowAnalytics(true)}
+              className="w-full py-4 bg-gray-900 dark:bg-white dark:text-gray-900 text-white rounded-[20px] font-black text-sm flex items-center justify-center gap-2 hover:scale-[1.02] transition-all shadow-lg"
+            >
+              <BarChart3 size={18} /> Open Analytics
+            </button>
+          </div>
+
           <div className="bg-white dark:bg-gray-900 p-8 rounded-[40px] border border-gray-100 dark:border-gray-800 shadow-sm transition-all duration-500 hover:shadow-xl dark:hover:shadow-black">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/20 text-[#F36D21] rounded-2xl flex items-center justify-center">
@@ -422,6 +448,18 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
           </div>
         </div>
       </main>
+
+      {/* Dietary Analytics Modal */}
+      {showAnalytics && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-6 overflow-y-auto" onClick={() => setShowAnalytics(false)}>
+          <div className="w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
+            <DietaryAnalytics 
+              restaurantId={currentMerchantId} 
+              onClose={() => setShowAnalytics(false)} 
+            />
+          </div>
+        </div>
+      )}
 
       <WaitlistModal isOpen={showWaitlistModal} onClose={() => setShowWaitlistModal(false)} formData={newWaitlist} setFormData={setNewWaitlist} onSubmit={handleAddWaitlist} />
       <ReservationModal isOpen={showResModal} onClose={() => setShowResModal(false)} formData={newRes} setFormData={setNewRes} onSubmit={handleAddReservation} />
