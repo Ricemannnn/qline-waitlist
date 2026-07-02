@@ -43,7 +43,7 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
   const [showTableModal, setShowTableModal] = useState(false);
   
   // Forms state
-  const [newRes, setNewRes] = useState({ guest_name: '', party_size: 2, phone_number: '', reservation_time: '' });
+  const [newRes, setNewRes] = useState({ guest_name: '', party_size: 2, phone_number: '', reservation_time: '', dietary_restrictions: [], allergies: [], other_needs: '' });
   const [newWaitlist, setNewWaitlist] = useState({ guest_name: '', party_size: 2, phone_number: '' });
   const [newTable, setNewTable] = useState({ name: '', capacity: 4 });
   
@@ -168,7 +168,7 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
     try {
       await addReservation(currentMerchantId, newRes);
       setShowResModal(false);
-      setNewRes({ guest_name: '', party_size: 2, phone_number: '', reservation_time: '' });
+      setNewRes({ guest_name: '', party_size: 2, phone_number: '', reservation_time: '', dietary_restrictions: [], allergies: [], other_needs: '' });
       toast.success('Reservation added!');
       fetchData();
     } catch (err) {
@@ -337,6 +337,7 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
               waitlist={waitlist} 
               settings={settings} 
               openTablesCount={openTablesCount}
+              merchantId={currentMerchantId}
               onAddClick={() => setShowWaitlistModal(true)}
               onNotify={handleNotify}
               onStatusChange={onStatusChange}
