@@ -19,7 +19,7 @@ import { sendSMS } from './notifications.js';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 const BASE_URL = process.env.BASE_URL || (process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` : `http://localhost:${PORT}`);
 
 const distPath = path.join(__dirname, '../client/dist');
