@@ -20,6 +20,8 @@ import DietaryAnalytics from '../components/dashboard/DietaryAnalytics';
 import { ReservationModal, WaitlistModal, TableModal } from '../components/dashboard/DashboardModals';
 import ErrorBoundary from '../components/layout/ErrorBoundary';
 import { DashboardSkeleton, Skeleton } from '../components/layout/Skeleton';
+import ToastHostScreen from '../components/mockups/ToastHostScreen';
+import { Sparkles } from 'lucide-react';
 
 const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
   const [searchParams] = useSearchParams();
@@ -273,6 +275,7 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
             { id: 'reservations', icon: <Calendar size={18} />, label: 'Reservations' },
             { id: 'tables', icon: <LayoutDashboard size={18} />, label: 'Tables' },
             { id: 'kitchen', icon: <ChefHat size={18} />, label: 'Kitchen' },
+            { id: 'mockup', icon: <Sparkles size={18} />, label: 'Qline View' },
             { id: 'settings', icon: <Settings size={18} />, label: 'Settings' }
           ].map(tab => (
             <button 
@@ -370,20 +373,26 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
               isSaving={isSavingSettings}
             />
           )}
+          {activeTab === 'mockup' && (
+            <div className="flex-1 overflow-hidden h-full rounded-[40px] border border-orange-100/40 shadow-inner">
+              <ToastHostScreen />
+            </div>
+          )}
         </ErrorBoundary>
 
         {/* Sidebar */}
-        <div className="w-full md:w-80 flex flex-col gap-6">
-          <div className="bg-white dark:bg-gray-900 p-8 rounded-[40px] border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group transition-all duration-500 hover:shadow-xl dark:hover:shadow-black">
-            <div className="absolute top-0 right-0 p-4 opacity-[0.03] dark:opacity-[0.05] group-hover:opacity-[0.08] transition-all duration-700 scale-150 -rotate-12">
-              <QrCode size={120} />
-            </div>
-            <div className="flex items-center gap-3 mb-8 relative z-10">
-              <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center shadow-sm">
-                <QrCode size={24} />
+        {activeTab !== 'mockup' && (
+          <div className="w-full md:w-80 flex flex-col gap-6">
+            <div className="bg-white dark:bg-gray-900 p-8 rounded-[40px] border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group transition-all duration-500 hover:shadow-xl dark:hover:shadow-black">
+              <div className="absolute top-0 right-0 p-4 opacity-[0.03] dark:opacity-[0.05] group-hover:opacity-[0.08] transition-all duration-700 scale-150 -rotate-12">
+                <QrCode size={120} />
               </div>
-              <h3 className="font-black text-gray-900 dark:text-white text-lg">Guest Join QR</h3>
-            </div>
+              <div className="flex items-center gap-3 mb-8 relative z-10">
+                <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center shadow-sm">
+                  <QrCode size={24} />
+                </div>
+                <h3 className="font-black text-gray-900 dark:text-white text-lg">Guest Join QR</h3>
+              </div>
             <div className="bg-gray-50 dark:bg-gray-800/50 aspect-square rounded-[32px] flex items-center justify-center mb-8 border-2 border-dashed border-gray-200 dark:border-gray-700 group-hover:border-blue-400 transition-all duration-500 relative">
                <img 
                   src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(joinUrl)}`} 
@@ -448,6 +457,7 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
             </ul>
           </div>
         </div>
+        )}
       </main>
 
       {/* Dietary Analytics Modal */}
