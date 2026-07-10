@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Users, Calendar, Clock, Phone, User, Plus, LayoutDashboard } from 'lucide-react';
+import { X, Users, Calendar, Clock, Phone, User, Plus, LayoutDashboard, Grid3x3 } from 'lucide-react';
 import DietarySelector from '../dietary/DietarySelector';
 import AllergySelector from '../dietary/AllergySelector';
 
@@ -204,6 +204,38 @@ export const TableModal = ({ isOpen, onClose, formData, setFormData, onSubmit })
             onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
           />
         </div>
+      </div>
+      {/* Position fields */}
+      <div className="bg-gray-50/50 dark:bg-gray-800/30 p-5 rounded-2xl border border-gray-100 dark:border-gray-800">
+        <div className="flex items-center gap-2 mb-3">
+          <Grid3x3 size={14} className="text-gray-400" />
+          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Floor Position (optional)</p>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="text-[8px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1">X Position</label>
+            <input
+              type="number"
+              min="0"
+              placeholder="Auto"
+              className="w-full px-4 py-3 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-bold focus:border-[#F36D21] focus:ring-4 focus:ring-[#F36D21]/5 outline-none transition-all dark:text-white dark:placeholder-gray-500"
+              value={formData.x !== undefined && formData.x !== '' ? formData.x : ''}
+              onChange={(e) => setFormData({ ...formData, x: e.target.value === '' ? '' : parseInt(e.target.value) || 0 })}
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-[8px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1">Y Position</label>
+            <input
+              type="number"
+              min="0"
+              placeholder="Auto"
+              className="w-full px-4 py-3 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 text-sm font-bold focus:border-[#F36D21] focus:ring-4 focus:ring-[#F36D21]/5 outline-none transition-all dark:text-white dark:placeholder-gray-500"
+              value={formData.y !== undefined && formData.y !== '' ? formData.y : ''}
+              onChange={(e) => setFormData({ ...formData, y: e.target.value === '' ? '' : parseInt(e.target.value) || 0 })}
+            />
+          </div>
+        </div>
+        <p className="mt-2 text-[9px] text-gray-400 font-medium">Leave blank for automatic placement on the floor plan.</p>
       </div>
       <button
         type="submit"

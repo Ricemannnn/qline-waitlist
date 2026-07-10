@@ -480,6 +480,29 @@ app.patch('/api/tables/:id', authenticateToken, (req, res) => {
   res.json({ success: true });
 });
 
+// Delete a table
+app.delete('/api/tables/:id', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  const table = db.prepare('SELECT restaurant_id FROM tables WHERE id = ?').get(id);
+  if (!table || table.restaurant_id !== req.user.restaurant_id) {
+    return res.status(403).json({ error: 'Unauthorized' });
+  }
+  db.prepare('DELETE FROM tables WHERE id = ?').run(id);
+  res.json({ success: true });
+});
+
+// Update table position
+app.put('/api/tables/:id/position', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  const { x, y } = req.body;
+  const table = db.prepare('SELECT restaurant_id FROM tables WHERE id = ?').get(id);
+  if (!table || table.restaurant_id !== req.user.restaurant_id) {
+    return res.status(403).json({ error: 'Unauthorized' });
+  }
+  db.prepare('UPDATE tables SET x = ?, y = ? WHERE id = ?').run(x, y, id);
+  res.json({ success: true });
+});
+
 // Waitlist API
 app.get('/api/waitlist/:restaurantId', (req, res) => {
   const { restaurantId } = req.params;

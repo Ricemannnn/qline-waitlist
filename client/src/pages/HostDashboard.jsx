@@ -47,7 +47,7 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
   // Forms state
   const [newRes, setNewRes] = useState({ guest_name: '', party_size: 2, phone_number: '', reservation_time: '', dietary_restrictions: [], allergies: [], other_needs: '' });
   const [newWaitlist, setNewWaitlist] = useState({ guest_name: '', party_size: 2, phone_number: '' });
-  const [newTable, setNewTable] = useState({ name: '', capacity: 4 });
+  const [newTable, setNewTable] = useState({ name: '', capacity: 4, x: '', y: '' });
   
   const urlMerchantId = searchParams.get('merchantId');
 
@@ -196,7 +196,7 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
     try {
       await addTable(currentMerchantId, newTable);
       setShowTableModal(false);
-      setNewTable({ name: '', capacity: 4 });
+      setNewTable({ name: '', capacity: 4, x: '', y: '' });
       toast.success('Table added');
       fetchData();
     } catch (err) {

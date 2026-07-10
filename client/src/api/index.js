@@ -28,6 +28,8 @@ export const updateSettings = (restaurantId, data) => api.post(`/settings/${rest
 export const getTables = (restaurantId) => api.get(`/tables/${restaurantId}`);
 export const addTable = (restaurantId, data) => api.post(`/tables/${restaurantId}`, data);
 export const updateTable = (id, data) => api.patch(`/tables/${id}`, data);
+export const deleteTable = (id) => api.delete(`/tables/${id}`);
+export const updateTablePosition = (id, x, y) => api.put(`/tables/${id}/position`, { x, y });
 export const getCloverTables = (merchantId) => api.get(`/clover/tables/${merchantId}`);
 
 // Auth
