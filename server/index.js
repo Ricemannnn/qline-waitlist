@@ -442,10 +442,10 @@ app.post('/api/tables/:restaurantId', authenticateToken, validate([
   const { restaurantId } = req.params;
   if (req.user.restaurant_id !== restaurantId) return res.status(403).json({ error: 'Unauthorized' });
 
-  const { name, capacity, status, x, y } = req.body;
+  const { name, capacity, status, x, y, shape } = req.body;
   
-  const result = db.prepare('INSERT INTO tables (restaurant_id, name, capacity, status, x, y) VALUES (?, ?, ?, ?, ?, ?)')
-    .run(restaurantId, name, capacity, status || 'available', x || 0, y || 0);
+  const result = db.prepare('INSERT INTO tables (restaurant_id, name, capacity, status, x, y, shape) VALUES (?, ?, ?, ?, ?, ?, ?)')
+    .run(restaurantId, name, capacity, status || 'available', x || 0, y || 0, shape || 'circle');
   
   res.json({ id: result.lastInsertRowid });
 });
@@ -459,7 +459,7 @@ app.patch('/api/tables/:id', authenticateToken, (req, res) => {
     return res.status(403).json({ error: 'Unauthorized' });
   }
 
-  const { status, name, capacity, x, y } = req.body;
+  const { status, name, capacity, x, y, shape } = req.body;
   
   let query = 'UPDATE tables SET ';
   const params = [];
@@ -470,6 +470,7 @@ app.patch('/api/tables/:id', authenticateToken, (req, res) => {
   if (capacity) { updates.push('capacity = ?'); params.push(capacity); }
   if (x !== undefined) { updates.push('x = ?'); params.push(x); }
   if (y !== undefined) { updates.push('y = ?'); params.push(y); }
+  if (shape) { updates.push('shape = ?'); params.push(shape); }
   
   if (updates.length === 0) return res.json({ success: true });
   
@@ -501,6 +502,33 @@ app.put('/api/tables/:id/position', authenticateToken, (req, res) => {
   }
   db.prepare('UPDATE tables SET x = ?, y = ? WHERE id = ?').run(x, y, id);
   res.json({ success: true });
+});
+
+// Host View: Combined endpoint for Qline View dashboard
+app.get('/api/host-view/:restaurantId', (req, res) => {
+  const { restaurantId } = req.params;
+  
+  const tables = db.prepare('SELECT * FROM tables WHERE restaurant_id = ?').all(restaurantId);
+  const waitlist = db.prepare("SELECT * FROM waitlist WHERE restaurant_id = ? AND status = 'waiting' ORDER BY joined_at ASC").all(restaurantId);
+  const reservations = db.prepare('SELECT * FROM reservations WHERE restaurant_id = ? ORDER BY reservation_time ASC').all(restaurantId);
+  let settings = db.prepare('SELECT * FROM settings WHERE restaurant_id = ?').get(restaurantId);
+  
+  if (!settings) {
+    settings = { wait_time_per_party: 10, total_tables: 10, menu_url: null, sms_template: null };
+  }
+  
+  const waitTimePerParty = settings.wait_time_per_party || 10;
+  const enrichedWaitlist = waitlist.map((item, index) => ({
+    ...item,
+    estimated_wait: index * waitTimePerParty
+  }));
+  
+  res.json({
+    tables,
+    waitlist: { entries: enrichedWaitlist, summary: { total_waiting: waitlist.length, next_estimated_wait: waitlist.length * waitTimePerParty } },
+    reservations,
+    settings
+  });
 });
 
 // Waitlist API
@@ -1369,6 +1397,65 @@ app.get('/api/analytics/:restaurantId/dietary', (req, res) => {
   } catch (error) {
     console.error('Dietary analytics error:', error);
     res.status(500).json({ error: 'Failed to generate dietary analytics' });
+  }
+});
+
+// GET /api/host-view/:restaurantId — Combined dashboard data for the Qline View
+app.get('/api/host-view/:restaurantId', (req, res) => {
+  const { restaurantId } = req.params;
+
+  try {
+    // Get tables
+    const tables = db.prepare('SELECT * FROM tables WHERE restaurant_id = ?').all(restaurantId);
+
+    // Get waitlist with estimated wait times
+    const waitlist = db.prepare("SELECT * FROM waitlist WHERE restaurant_id = ? AND status = 'waiting' ORDER BY joined_at ASC").all(restaurantId);
+    const settings = db.prepare('SELECT * FROM settings WHERE restaurant_id = ?').get(restaurantId);
+    const waitTimePerParty = settings ? settings.wait_time_per_party : 10;
+    const enrichedWaitlist = waitlist.map((item, index) => ({
+      ...item,
+      estimated_wait: index * waitTimePerParty
+    }));
+
+    // Get reservations with dietary data
+    const reservations = db.prepare(`
+      SELECT r.*, rd.id as dietary_id, rd.dietary_restrictions, rd.allergies, rd.other_needs,
+             rd.experience_suitable, rd.modification_requested, rd.modification_approved
+      FROM reservations r
+      LEFT JOIN reservation_dietary rd ON r.id = rd.reservation_id
+      WHERE r.restaurant_id = ?
+      ORDER BY r.reservation_time ASC
+    `).all(restaurantId);
+    const enrichedReservations = reservations.map(r => ({
+      ...r,
+      dietary_restrictions: r.dietary_restrictions ? JSON.parse(r.dietary_restrictions) : [],
+      allergies: r.allergies ? JSON.parse(r.allergies) : [],
+      dietary_id: undefined
+    }));
+
+    // Get settings (with defaults)
+    const defaultSettings = {
+      restaurant_id: restaurantId,
+      wait_time_per_party: 10,
+      total_tables: 10,
+      sms_template: 'Hi {guest_name}, your table at {restaurant_name} is ready!'
+    };
+
+    res.json({
+      tables,
+      waitlist: {
+        entries: enrichedWaitlist,
+        summary: {
+          total_waiting: waitlist.length,
+          next_estimated_wait: waitlist.length * waitTimePerParty
+        }
+      },
+      reservations: enrichedReservations,
+      settings: settings || defaultSettings
+    });
+  } catch (error) {
+    console.error('Host view error:', error);
+    res.status(500).json({ error: 'Failed to load host view data' });
   }
 });
 

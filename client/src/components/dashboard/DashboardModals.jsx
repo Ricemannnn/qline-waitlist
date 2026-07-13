@@ -1,7 +1,15 @@
 import React from 'react';
-import { X, Users, Calendar, Clock, Phone, User, Plus, LayoutDashboard, Grid3x3 } from 'lucide-react';
+import { X, Users, Calendar, Clock, Phone, User, Plus, LayoutDashboard, Grid3x3, Circle, Square, RectangleHorizontal, Sofa, Martini } from 'lucide-react';
 import DietarySelector from '../dietary/DietarySelector';
 import AllergySelector from '../dietary/AllergySelector';
+
+const SHAPE_OPTIONS = [
+  { value: 'circle', label: 'Round', icon: Circle },
+  { value: 'square', label: 'Square', icon: Square },
+  { value: 'rectangle', label: 'Rectangle', icon: RectangleHorizontal },
+  { value: 'booth', label: 'Booth', icon: Sofa },
+  { value: 'bar', label: 'Bar', icon: Martini },
+];
 
 const ModalOverlay = ({ children, isOpen, onClose }) => {
   if (!isOpen) return null;
@@ -203,6 +211,33 @@ export const TableModal = ({ isOpen, onClose, formData, setFormData, onSubmit })
             value={formData.capacity}
             onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
           />
+        </div>
+      </div>
+      {/* Shape selector */}
+      <div className="bg-gray-50/50 dark:bg-gray-800/30 p-5 rounded-2xl border border-gray-100 dark:border-gray-800">
+        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+          <LayoutDashboard size={14} /> Table Shape
+        </p>
+        <div className="grid grid-cols-5 gap-2">
+          {SHAPE_OPTIONS.map((s) => {
+            const Icon = s.icon;
+            const isActive = formData.shape === s.value || (!formData.shape && s.value === 'circle');
+            return (
+              <button
+                key={s.value}
+                type="button"
+                onClick={() => setFormData({ ...formData, shape: s.value })}
+                className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all ${
+                  isActive
+                    ? 'bg-[#F36D21]/10 border-[#F36D21] text-[#F36D21]'
+                    : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:border-[#F36D21]/40 hover:text-[#F36D21]'
+                }`}
+              >
+                <Icon size={20} />
+                <span className="text-[9px] font-black">{s.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
       {/* Position fields */}

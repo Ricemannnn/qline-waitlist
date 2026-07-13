@@ -65,7 +65,8 @@ db.exec(`
     restaurant_id TEXT NOT NULL,
     name TEXT NOT NULL,
     capacity INTEGER DEFAULT 4,
-    status TEXT DEFAULT 'available', -- available, occupied, reserved
+    status TEXT DEFAULT 'available', -- available, occupied, reserved, needs-attention
+    shape TEXT DEFAULT 'circle', -- circle, square, rectangle, booth, bar
     x INTEGER DEFAULT 0,
     y INTEGER DEFAULT 0,
     FOREIGN KEY (restaurant_id) REFERENCES restaurants (id)
@@ -179,6 +180,10 @@ db.exec(`
   insertMany(allergyItems);
   }
 
+// Migration: Add shape column to tables if missing
+try {
+  db.prepare("ALTER TABLE tables ADD COLUMN shape TEXT DEFAULT 'circle'").run();
+} catch (e) {}
 // Migration: Add columns to settings if they don't exist
 try {
   db.prepare('ALTER TABLE settings ADD COLUMN total_tables INTEGER DEFAULT 10').run();

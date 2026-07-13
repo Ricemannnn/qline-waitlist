@@ -26,7 +26,7 @@ import { Sparkles } from 'lucide-react';
 const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('waitlist');
+  const [activeTab, setActiveTab] = useState('tables');
   const [waitlist, setWaitlist] = useState({ entries: [], summary: { total_waiting: 0, next_estimated_wait: 0 } });
   const [reservations, setReservations] = useState([]);
   const [tables, setTables] = useState([]);
@@ -47,7 +47,7 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
   // Forms state
   const [newRes, setNewRes] = useState({ guest_name: '', party_size: 2, phone_number: '', reservation_time: '', dietary_restrictions: [], allergies: [], other_needs: '' });
   const [newWaitlist, setNewWaitlist] = useState({ guest_name: '', party_size: 2, phone_number: '' });
-  const [newTable, setNewTable] = useState({ name: '', capacity: 4, x: '', y: '' });
+  const [newTable, setNewTable] = useState({ name: '', capacity: 4, x: '', y: '', shape: 'circle' });
   
   const urlMerchantId = searchParams.get('merchantId');
 
@@ -196,7 +196,7 @@ const HostDashboard = ({ isDarkMode, toggleDarkMode }) => {
     try {
       await addTable(currentMerchantId, newTable);
       setShowTableModal(false);
-      setNewTable({ name: '', capacity: 4, x: '', y: '' });
+      setNewTable({ name: '', capacity: 4, x: '', y: '', shape: 'circle' });
       toast.success('Table added');
       fetchData();
     } catch (err) {

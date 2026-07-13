@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Users, Plus, LayoutDashboard, AlertTriangle, Info, Trash2, Check, X, GripVertical, Move } from 'lucide-react';
-import { getReservations, linkTableReservation, deleteTable, updateTablePosition } from '../../api';
+import { Users, Plus, LayoutDashboard, AlertTriangle, Info, Trash2, Check, X, GripVertical, Move, Circle, Square, RectangleHorizontal, Sofa, Martini } from 'lucide-react';
+import { getReservations, linkTableReservation, deleteTable, updateTablePosition, updateTable } from '../../api';
 import toast from 'react-hot-toast';
 
 const DIETARY_COLORS = {
@@ -25,6 +25,38 @@ const GAP_X = 30;
 const GAP_Y = 30;
 const GRID_PADDING = 40;
 
+const SHAPE_ICONS = {
+  circle: Circle,
+  square: Square,
+  rectangle: RectangleHorizontal,
+  booth: Sofa,
+  bar: Martini,
+};
+
+const SHAPE_LABELS = {
+  circle: 'Round',
+  square: 'Square',
+  rectangle: 'Rectangle',
+  booth: 'Booth',
+  bar: 'Bar',
+};
+
+const SHAPE_STYLES = {
+  circle: 'rounded-full',
+  square: 'rounded-2xl',
+  rectangle: 'rounded-2xl',
+  booth: 'rounded-3xl',
+  bar: 'rounded-xl',
+};
+
+const SHAPE_DIMENSIONS = {
+  circle: { w: 200, h: 200 },
+  square: { w: 200, h: 200 },
+  rectangle: { w: 260, h: 200 },
+  booth: { w: 240, h: 260 },
+  bar: { w: 280, h: 180 },
+};
+
 const TablesTab = ({ tables, onAddClick, onUpdateStatus, restaurantId }) => {
   const [reservations, setReservations] = useState([]);
   const [showLinkModal, setShowLinkModal] = useState(null);
@@ -35,6 +67,7 @@ const TablesTab = ({ tables, onAddClick, onUpdateStatus, restaurantId }) => {
   const [draggingId, setDraggingId] = useState(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [livePositions, setLivePositions] = useState({});
+  const [shapeMenu, setShapeMenu] = useState(null); // { tableId, x, y }
   const floorRef = useRef(null);
 
   useEffect(() => {
@@ -140,6 +173,22 @@ const TablesTab = ({ tables, onAddClick, onUpdateStatus, restaurantId }) => {
     e.dataTransfer.setData('text/plain', tableId.toString());
   }, [isRearranging]);
 
+  const handleContextMenu = useCallback((e, table) => {
+    e.preventDefault();
+    setShapeMenu({ tableId: table.id, x: e.clientX, y: e.clientY });
+  }, []);
+
+  const handleShapeChange = async (tableId, shape) => {
+    try {
+      await updateTable(tableId, { shape });
+      setShapeMenu(null);
+      toast.success(`Shape changed to ${SHAPE_LABELS[shape]}`);
+      if (onUpdateStatus) onUpdateStatus(tableId, tables.find(t => t.id === tableId)?.status);
+    } catch (err) {
+      toast.error('Failed to update shape');
+    }
+  };
+
   const handleDrag = useCallback((e) => {
     if (!draggingId || !floorRef.current || !isRearranging) return;
     e.preventDefault();
@@ -179,21 +228,30 @@ const TablesTab = ({ tables, onAddClick, onUpdateStatus, restaurantId }) => {
     // Auto-arrange if no position set
     const index = tables.findIndex(t => t.id === table.id);
     const cols = Math.min(tables.length, 5);
+    const dim = SHAPE_DIMENSIONS[table.shape] || SHAPE_DIMENSIONS.circle;
     return {
-      x: (index % cols) * (TABLE_WIDTH + GAP_X) + GRID_PADDING,
-      y: Math.floor(index / cols) * (TABLE_HEIGHT + GAP_Y) + GRID_PADDING
+      x: (index % cols) * (dim.w + GAP_X) + GRID_PADDING,
+      y: Math.floor(index / cols) * (dim.h + GAP_Y) + GRID_PADDING
     };
   };
 
   const floorWidth = Math.max(
     tables.length > 0
-      ? Math.max(...tables.map(t => getTablePos(t).x + TABLE_WIDTH)) + GRID_PADDING
+      ? Math.max(...tables.map(t => {
+          const pos = getTablePos(t);
+          const dim = SHAPE_DIMENSIONS[t.shape] || SHAPE_DIMENSIONS.circle;
+          return pos.x + dim.w;
+        })) + GRID_PADDING
       : 600,
     600
   );
   const floorHeight = Math.max(
     tables.length > 0
-      ? Math.max(...tables.map(t => getTablePos(t).y + TABLE_HEIGHT)) + GRID_PADDING
+      ? Math.max(...tables.map(t => {
+          const pos = getTablePos(t);
+          const dim = SHAPE_DIMENSIONS[t.shape] || SHAPE_DIMENSIONS.circle;
+          return pos.y + dim.h;
+        })) + GRID_PADDING
       : 400,
     400
   );
@@ -367,6 +425,10 @@ const TablesTab = ({ tables, onAddClick, onUpdateStatus, restaurantId }) => {
             {tables.map((table) => {
               const pos = getTablePos(table);
               const isDragging = draggingId === table.id;
+              const shape = table.shape || 'circle';
+              const dim = SHAPE_DIMENSIONS[shape] || SHAPE_DIMENSIONS.circle;
+              const ShapeIcon = SHAPE_ICONS[shape] || Circle;
+              const shapeStyle = SHAPE_STYLES[shape] || 'rounded-2xl';
 
               return (
                 <div
@@ -374,7 +436,8 @@ const TablesTab = ({ tables, onAddClick, onUpdateStatus, restaurantId }) => {
                   draggable={isRearranging}
                   onDragStart={(e) => handleDragStart(e, table.id)}
                   onDragEnd={handleDragEnd}
-                  className={`group absolute p-5 rounded-[28px] border-2 transition-all duration-200 ${
+                  onContextMenu={(e) => handleContextMenu(e, table)}
+                  className={`group absolute p-4 border-2 transition-all duration-200 ${
                     isDragging ? 'opacity-80 scale-105 shadow-2xl z-50 rotating-border' : 'z-10'
                   } ${
                     table.status === 'available'
@@ -382,14 +445,19 @@ const TablesTab = ({ tables, onAddClick, onUpdateStatus, restaurantId }) => {
                       : table.status === 'reserved'
                       ? 'bg-blue-50/20 dark:bg-blue-950/10 border-blue-100 dark:border-blue-900/20 hover:border-blue-400'
                       : 'bg-red-50/20 dark:bg-red-950/10 border-red-100 dark:border-red-900/20 hover:border-red-400'
-                  } ${isRearranging ? 'cursor-grab active:cursor-grabbing ring-2 ring-[#F36D21]/30 hover:ring-[#F36D21]/60' : 'cursor-default'}`}
+                  } ${isRearranging ? 'cursor-grab active:cursor-grabbing ring-2 ring-[#F36D21]/30 hover:ring-[#F36D21]/60' : 'cursor-default'} ${shapeStyle}`}
                   style={{
                     left: pos.x,
                     top: pos.y,
-                    width: TABLE_WIDTH,
+                    width: dim.w,
+                    height: dim.h,
                     transition: isDragging ? 'none' : 'left 0.3s ease, top 0.3s ease, box-shadow 0.3s ease'
                   }}
                 >
+                  {/* Shape icon badge */}
+                  <div className="absolute top-2 left-2 z-10 opacity-30 group-hover:opacity-60 transition-opacity">
+                    <ShapeIcon size={16} className="text-gray-500 dark:text-gray-400" />
+                  </div>
                   {/* Glow Effect */}
                   <div className={`absolute -inset-px rounded-[28px] blur-xl opacity-0 group-hover:opacity-20 transition-opacity duration-500 ${
                     table.status === 'available' ? 'bg-green-500' : table.status === 'reserved' ? 'bg-blue-500' : 'bg-red-500'
@@ -507,6 +575,49 @@ const TablesTab = ({ tables, onAddClick, onUpdateStatus, restaurantId }) => {
               );
             })}
           </div>
+        )}
+
+        {/* Shape Context Menu */}
+        {shapeMenu && (
+          <div
+            className="fixed z-[100] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 p-2 w-44"
+            style={{ left: shapeMenu.x, top: shapeMenu.y }}
+            onClick={() => setShapeMenu(null)}
+          >
+            <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest px-3 py-2">Change Shape</p>
+            {Object.keys(SHAPE_LABELS).map((s) => {
+              const Icon = SHAPE_ICONS[s];
+              const isActive = tables.find(t => t.id === shapeMenu.tableId)?.shape === s;
+              return (
+                <button
+                  key={s}
+                  onClick={() => handleShapeChange(shapeMenu.tableId, s)}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                    isActive
+                      ? 'bg-[#F36D21]/10 text-[#F36D21]'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                  }`}
+                >
+                  <Icon size={18} className={isActive ? 'text-[#F36D21]' : 'text-gray-400'} />
+                  {SHAPE_LABELS[s]}
+                  {isActive && <span className="ml-auto text-[10px] font-black text-[#F36D21]">✓</span>}
+                </button>
+              );
+            })}
+            <div className="border-t border-gray-100 dark:border-gray-800 mt-2 pt-2">
+              <button
+                onClick={() => setShapeMenu(null)}
+                className="w-full text-center py-2 text-xs font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Click outside to close shape menu */}
+        {shapeMenu && (
+          <div className="fixed inset-0 z-[99]" onClick={() => setShapeMenu(null)} />
         )}
       </div>
     </div>
