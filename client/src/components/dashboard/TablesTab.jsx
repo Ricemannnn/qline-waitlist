@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Users, Plus, LayoutDashboard, AlertTriangle, Info, Trash2, Check, X, GripVertical, Move, Circle, Square, RectangleHorizontal, Sofa, Martini } from 'lucide-react';
-import { getReservations, linkTableReservation, deleteTable, updateTablePosition, updateTable } from '../../api';
+import { Users, Plus, LayoutDashboard, AlertTriangle, Info, Trash2, Check, X, GripVertical, Move, Circle, Square, RectangleHorizontal, Sofa, Martini, Bell, Search, Clock, ChevronLeft, ChevronRight, UtensilsCrossed } from 'lucide-react';
+import { getReservations, linkTableReservation, deleteTable, updateTablePosition, updateTable, updateWaitlistStatus } from '../../api';
 import toast from 'react-hot-toast';
 
 const DIETARY_COLORS = {
@@ -57,7 +57,7 @@ const SHAPE_DIMENSIONS = {
   bar: { w: 280, h: 180 },
 };
 
-const TablesTab = ({ tables, onAddClick, onUpdateStatus, restaurantId }) => {
+const TablesTab = ({ tables, onAddClick, onUpdateStatus, restaurantId, waitlist, onNotify, onStatusChange, settings, openTablesCount, onAddWaitlistClick }) => {
   const [reservations, setReservations] = useState([]);
   const [showLinkModal, setShowLinkModal] = useState(null);
   const [selectedReservation, setSelectedReservation] = useState('');
@@ -68,6 +68,9 @@ const TablesTab = ({ tables, onAddClick, onUpdateStatus, restaurantId }) => {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [livePositions, setLivePositions] = useState({});
   const [shapeMenu, setShapeMenu] = useState(null); // { tableId, x, y }
+  const [waitlistOpen, setWaitlistOpen] = useState(true);
+  const [waitlistSearch, setWaitlistSearch] = useState('');
+  const [selectedWaitlistGuest, setSelectedWaitlistGuest] = useState(null);
   const floorRef = useRef(null);
 
   useEffect(() => {
@@ -172,6 +175,34 @@ const TablesTab = ({ tables, onAddClick, onUpdateStatus, restaurantId }) => {
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', tableId.toString());
   }, [isRearranging]);
+
+  // Seating flow: seat a waitlist guest at a table
+  const handleSeatGuest = async (waitlistGuest, tableId) => {
+    try {
+      await onStatusChange(waitlistGuest.id, 'seated');
+      await onUpdateStatus(tableId, 'occupied');
+      setSelectedWaitlistGuest(null);
+      toast.success(`${waitlistGuest.guest_name} seated at ${tables.find(t => t.id === tableId)?.name || 'table'}`);
+    } catch (err) {
+      toast.error('Failed to seat guest');
+    }
+  };
+
+  const handleTableClick = (table) => {
+    if (selectedWaitlistGuest && table.status === 'available') {
+      handleSeatGuest(selectedWaitlistGuest, table.id);
+    } else if (!selectedWaitlistGuest) {
+      // Open existing table actions (if not in seating flow)
+      if (!isRearranging && !shapeMenu) {
+        // Toggle selection for actions (pass through to existing behavior)
+      }
+    }
+  };
+
+  const filteredWaitlist = waitlist?.entries?.filter(g => 
+    g.guest_name?.toLowerCase().includes(waitlistSearch.toLowerCase()) ||
+    g.phone_number?.includes(waitlistSearch)
+  ) || [];
 
   const handleContextMenu = useCallback((e, table) => {
     e.preventDefault();
@@ -326,6 +357,22 @@ const TablesTab = ({ tables, onAddClick, onUpdateStatus, restaurantId }) => {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setWaitlistOpen(!waitlistOpen)}
+            className={`px-5 py-3 rounded-2xl font-black flex items-center gap-2 transition-all text-sm ${
+              waitlistOpen
+                ? 'bg-[#F36D21] text-white shadow-xl shadow-orange-200 dark:shadow-none'
+                : 'bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-[#F36D21] hover:text-[#F36D21]'
+            }`}
+          >
+            <Users size={18} strokeWidth={2.5} />
+            <span>Waitlist</span>
+            {waitlist?.summary?.total_waiting > 0 && (
+              <span className="bg-[#F36D21]/20 text-white text-[10px] font-black px-2 py-0.5 rounded-full ml-1">
+                {waitlist.summary.total_waiting}
+              </span>
+            )}
+          </button>
           {tables.length > 0 && (
             <button
               onClick={() => {
@@ -388,7 +435,11 @@ const TablesTab = ({ tables, onAddClick, onUpdateStatus, restaurantId }) => {
         </div>
       )}
 
-      <div className="flex-1 bg-white dark:bg-gray-900 rounded-[40px] border border-gray-100 dark:border-gray-800 shadow-sm overflow-auto scrollbar-hide">
+      <div className="flex-1 flex gap-0 overflow-hidden relative">
+        {/* Floor Plan */}
+        <div className={`flex-1 bg-white dark:bg-gray-900 rounded-[40px] border border-gray-100 dark:border-gray-800 shadow-sm overflow-auto scrollbar-hide transition-all duration-300 ${
+          waitlistOpen ? 'rounded-r-none border-r-0' : ''
+        }`}>
         {tables.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-400 text-center p-12">
             <div className="w-24 h-24 bg-gray-50 dark:bg-gray-800 rounded-[32px] flex items-center justify-center mb-6 border border-gray-100 dark:border-gray-700 shadow-inner">
@@ -437,15 +488,18 @@ const TablesTab = ({ tables, onAddClick, onUpdateStatus, restaurantId }) => {
                   onDragStart={(e) => handleDragStart(e, table.id)}
                   onDragEnd={handleDragEnd}
                   onContextMenu={(e) => handleContextMenu(e, table)}
+                  onClick={() => handleTableClick(table)}
                   className={`group absolute p-4 border-2 transition-all duration-200 ${
                     isDragging ? 'opacity-80 scale-105 shadow-2xl z-50 rotating-border' : 'z-10'
                   } ${
                     table.status === 'available'
-                      ? 'bg-green-50/20 dark:bg-green-950/10 border-green-100 dark:border-green-900/20 hover:border-green-400'
+                      ? selectedWaitlistGuest
+                        ? 'bg-green-100 dark:bg-green-950/20 border-green-400 dark:border-green-500 hover:border-green-600 cursor-pointer animate-pulse'
+                        : 'bg-green-50/20 dark:bg-green-950/10 border-green-100 dark:border-green-900/20 hover:border-green-400'
                       : table.status === 'reserved'
                       ? 'bg-blue-50/20 dark:bg-blue-950/10 border-blue-100 dark:border-blue-900/20 hover:border-blue-400'
                       : 'bg-red-50/20 dark:bg-red-950/10 border-red-100 dark:border-red-900/20 hover:border-red-400'
-                  } ${isRearranging ? 'cursor-grab active:cursor-grabbing ring-2 ring-[#F36D21]/30 hover:ring-[#F36D21]/60' : 'cursor-default'} ${shapeStyle}`}
+                  } ${isRearranging ? 'cursor-grab active:cursor-grabbing ring-2 ring-[#F36D21]/30 hover:ring-[#F36D21]/60' : selectedWaitlistGuest && table.status === 'available' ? 'cursor-pointer' : 'cursor-default'} ${shapeStyle}`}
                   style={{
                     left: pos.x,
                     top: pos.y,
@@ -574,6 +628,116 @@ const TablesTab = ({ tables, onAddClick, onUpdateStatus, restaurantId }) => {
                 </div>
               );
             })}
+          </div>
+        )}
+        </div>
+
+        {/* Slide-Out Waitlist Panel */}
+        {waitlistOpen && (
+          <div className="w-[30%] min-w-[300px] max-w-[400px] bg-white dark:bg-gray-900 rounded-r-[40px] border border-gray-100 dark:border-gray-800 border-l-0 shadow-sm flex flex-col overflow-hidden transition-all duration-300">
+            {/* Panel Header */}
+            <div className="p-5 border-b border-gray-100 dark:border-gray-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users size={18} className="text-[#F36D21]" />
+                  <h3 className="text-sm font-black tracking-tight text-gray-900 dark:text-white">
+                    Waitlist
+                  </h3>
+                  <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
+                    {waitlist?.summary?.total_waiting || 0}
+                  </span>
+                </div>
+                {selectedWaitlistGuest && (
+                  <button
+                    onClick={() => setSelectedWaitlistGuest(null)}
+                    className="text-[10px] font-black text-red-500 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 transition-all"
+                  >
+                    Cancel Seat
+                  </button>
+                )}
+              </div>
+              {/* Search */}
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Find waiting guests..."
+                  value={waitlistSearch}
+                  onChange={(e) => setWaitlistSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 dark:text-white rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-[#F36D21]/20 transition-all border border-transparent focus:border-[#F36D21]/30"
+                />
+              </div>
+            </div>
+
+            {/* Waitlist Cards */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar">
+              {selectedWaitlistGuest && (
+                <div className="mb-3 p-3 bg-[#F36D21]/5 border-2 border-dashed border-[#F36D21]/40 rounded-2xl text-center">
+                  <p className="text-[11px] font-black text-[#F36D21]">
+                    Click an available table to seat <span className="underline">{selectedWaitlistGuest.guest_name}</span>
+                  </p>
+                </div>
+              )}
+              {filteredWaitlist.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-40 text-gray-400 text-center">
+                  <Users size={32} className="opacity-20 mb-3" />
+                  <p className="text-sm font-bold text-gray-500 dark:text-gray-400">
+                    {waitlistSearch ? 'No matching guests' : 'Waitlist is empty'}
+                  </p>
+                  <p className="text-[10px] font-medium text-gray-400 mt-1">
+                    {waitlistSearch ? 'Try a different search' : 'Add guests to start tracking'}
+                  </p>
+                </div>
+              ) : (
+                filteredWaitlist.map((guest, idx) => {
+                  const isSelected = selectedWaitlistGuest?.id === guest.id;
+                  const minutesWaiting = Math.floor((new Date() - new Date(guest.joined_at)) / 60000);
+                  return (
+                    <div
+                      key={guest.id}
+                      onClick={() => {
+                        setSelectedWaitlistGuest(isSelected ? null : guest);
+                        setWaitlistSearch('');
+                      }}
+                      className={`p-4 rounded-2xl border cursor-pointer transition-all duration-200 ${
+                        isSelected
+                          ? 'border-2 border-[#F36D21] bg-[#F36D21]/5 shadow-lg'
+                          : 'bg-[#FFFDF9] dark:bg-gray-800/40 border-gray-100 dark:border-gray-800 hover:border-[#F36D21]/30 hover:shadow-sm'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center font-black text-xs text-gray-500 dark:text-gray-300">
+                            {idx + 1}
+                          </span>
+                          <h4 className="text-sm font-black text-gray-900 dark:text-white truncate max-w-[120px]">
+                            {guest.guest_name}
+                          </h4>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-gray-400">
+                          <Clock size={12} className="text-[#F36D21]" />
+                          <span className="text-[10px] font-mono font-black">{minutesWaiting}m</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] font-bold text-gray-500 dark:text-gray-400">
+                        <span>👥 {guest.party_size} guests</span>
+                        {guest.phone_number && <span className="text-[9px]">{guest.phone_number}</span>}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Add Guest Button */}
+            <div className="p-4 border-t border-gray-100 dark:border-gray-800">
+              <button
+                onClick={onAddWaitlistClick}
+                className="w-full py-4 bg-[#F36D21]/10 text-[#F36D21] border border-[#F36D21]/30 hover:bg-[#F36D21]/20 rounded-2xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all"
+              >
+                <Plus size={14} strokeWidth={3} /> Add Guest
+              </button>
+            </div>
           </div>
         )}
 
